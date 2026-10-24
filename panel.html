@@ -84,7 +84,7 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
     <button class="stc" data-f="menunggu"><b class="y" id="sB">0</b><span>BELUM</span></button>
     <button class="stc" data-f="selesai"><b class="g" id="sS">0</b><span>SELESAI</span></button>
   </div>
-  <div class="tabs"><button id="t1" class="on">Pesanan</button><button id="t2">Produk &amp; akun</button><button id="t3">Kelompok</button><button id="t4">Diskon</button><button id="t5">Pendapatan</button><button id="t6">Jaspot</button></div>
+  <div class="tabs"><button id="t1" class="on">Pesanan</button><button id="t2">Produk &amp; akun</button><button id="t3">Kelompok</button><button id="t4">Diskon</button><button id="t5">Pendapatan</button><button id="t6">Jaspot</button><button id="t7">Info &amp; Pesan</button></div>
 
   <section id="s1">
     <div class="srch"><i>🔍</i><input type="search" id="q" placeholder="Cari ID pesanan / nama..."></div>
@@ -137,6 +137,8 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
     <div class="panel"><b>Kelompok</b><div id="gl"></div>
       <input type="text" id="gn" placeholder="Nama kelompok (mis. APK)" style="margin-top:8px">
       <input type="text" id="gi" placeholder="Emoji ikon (mis. 📱)" style="margin-top:6px">
+      <label class="up" for="gif" id="gil">Foto kelompok (opsional, lebih bagus dari emoji)</label>
+      <input type="file" id="gif" class="vh" accept="image/*">
       <button class="btn" id="gadd">Tambah kelompok</button></div>
     <div class="panel"><b>Masukkan produk ke kelompok</b>
       <label for="gps">Produk</label><select id="gps"></select>
@@ -160,6 +162,16 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
     <div class="panel"><b>Per produk</b><div id="rp"></div></div>
   </section>
   <section id="s6" class="hide"><div class="msg" style="margin:8px 0">Pengajuan titip jual dari pelanggan. Tekan ACC supaya otomatis tampil di web.</div><div id="jl"></div><button class="btn g" id="jrf">Muat ulang</button></section>
+  <section id="s7" class="hide">
+    <div class="panel"><b>Info</b><label for="inf">Isi menu Info (tampil di web)</label>
+      <textarea id="inf" rows="6" placeholder="mis. ELZ STR menyediakan barang dan jasa: ..."></textarea>
+      <button class="btn g" id="infs">Terapkan info</button></div>
+    <div class="panel"><b>Pesan berjalan</b>
+      <div class="msg">Selain pesan buatanmu, web otomatis menampilkan diskon yang aktif dan pesanan terbaru (contoh: "Da*** 1 menit lalu telah memesan OTAX").</div>
+      <div id="tkl"></div>
+      <input type="text" id="tkn" placeholder="Tulis pesan berjalan..." style="margin-top:8px">
+      <button class="btn" id="tka">Tambah pesan</button></div>
+  </section>
   <div id="sv" class="hide"><button class="btn" id="save">Simpan semua perubahan</button><div class="msg" id="smsg"></div></div>
 </div>
 
@@ -185,8 +197,8 @@ $("plg").onclick=async function(){PW=$("pw").value;$("pe").textContent="";
 $("out").onclick=function(){PW="";try{localStorage.removeItem("elz_pw")}catch(e){}$("app").classList.add("hide");$("lg").classList.remove("hide")};
 if(PW)enter();
 
-function tab(n){["s1","s2","s3","s4","s5","s6"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});$("sv").classList.toggle("hide",n<2||n>4);if(n>=2&&n<=4)loadProd();if(n===5)drawR();if(n===6)loadJ()}
-[1,2,3,4,5,6].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
+function tab(n){["s1","s2","s3","s4","s5","s6","s7"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});$("sv").classList.toggle("hide",!((n>=2&&n<=4)||n===7));if((n>=2&&n<=4)||n===7)loadProd();if(n===5)drawR();if(n===6)loadJ()}
+[1,2,3,4,5,6,7].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
 [].forEach.call($("fl").children,function(b){b.onclick=function(){FL=b.getAttribute("data-f");[].forEach.call($("fl").children,function(x){x.classList.toggle("on",x===b)});tab(1);drawO()}});
 $("q").oninput=drawO;
 async function load(){try{var r=await api("/api/orders");if(r.ok){ORD=(await r.json()).orders||[];drawO()}}catch(e){}}
@@ -244,7 +256,7 @@ async function loadProd(){
     if(!DATA){try{DATA=await (await fetch("/defaults.json")).json()}catch(e){DATA={}}}}
   drawP()}
 function dirty(){var kb=Math.round(JSON.stringify(DATA).length/1024);$("smsg").textContent="Ada perubahan yang belum disimpan. Ukuran data: "+kb+" KB (maks 900 KB)."}
-function drawP(){var s=$("ps"),cur=s.value;s.innerHTML="";PK().forEach(function(k){var o=mk("option",k);o.value=k;s.appendChild(o)});if(cur&&DATA[cur])s.value=cur;drawK();fillD();fillV();drawG();drawD()}
+function drawP(){var s=$("ps"),cur=s.value;s.innerHTML="";PK().forEach(function(k){var o=mk("option",k);o.value=k;s.appendChild(o)});if(cur&&DATA[cur])s.value=cur;drawK();fillD();fillV();drawG();drawD();drawI()}
 function fillV(){var k=$("ps").value,s=$("vsel");s.innerHTML="";if(!DATA[k])return;DATA[k].p.forEach(function(it,i){var o=mk("option",(it[4]?"🎬 ":"")+it[0]);o.value=i;s.appendChild(o)});$("vin").value=(DATA[k].p[0]&&DATA[k].p[0][4])||""}
 function fillD(){var k=$("ps").value;$("ed").value=(DATA[k]&&DATA[k].d)||"";$("edl").value=(DATA[k]&&DATA[k].dl)||""}
 function drawK(){var k=$("ps").value,b=$("pk");b.innerHTML="";$("pdel").textContent="Hapus produk ini";if(!DATA[k])return;
@@ -275,13 +287,20 @@ $("nadd").onclick=function(){var n=$("np").value.trim();if(!n||DATA[n]){$("smsg"
   var o={ic:$("ni").value.trim()||"🛒",d:$("nd").value.trim(),p:[]};if(NIMG)o.img=NIMG;if($("ndl").value.trim())o.dl=$("ndl").value.trim();if($("nso").checked)o.so=true;
   DATA[n]=o;NIMG="";$("nil").textContent="Ketuk untuk pilih gambar produk";$("np").value="";$("ni").value="";$("nd").value="";$("ndl").value="";$("nso").checked=false;dirty();drawP();$("ps").value=n;drawK();fillD()};
 
+var GIMG="";
+$("gif").onchange=async function(){var f=this.files[0];if(!f)return;try{GIMG=await prep(f,160,true,0.82);$("gil").textContent="Foto dipilih (ketuk untuk ganti)"}catch(e){}};
+function drawI(){$("inf").value=DATA.__info||"";var b=$("tkl");b.innerHTML="";var t=DATA.__ticker||[];
+  t.forEach(function(x,i){var r=mk("div",null,"ar");r.appendChild(mk("span",x));var d=mk("button","Hapus");d.onclick=function(){t.splice(i,1);DATA.__ticker=t;dirty();drawI()};r.appendChild(d);b.appendChild(r)});
+  if(!t.length)b.appendChild(mk("div","Belum ada pesan berjalan.","msg"))}
+$("infs").onclick=function(){var v=$("inf").value.trim();if(v)DATA.__info=v;else delete DATA.__info;dirty()};
+$("tka").onclick=function(){var v=$("tkn").value.trim();if(!v)return;DATA.__ticker=DATA.__ticker||[];DATA.__ticker.push(v);$("tkn").value="";dirty();drawI()};
 function gl(){return DATA.__groups||(DATA.__groups=[])}
-function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");r.appendChild(mk("span",(G.ic||"📁")+" "+G.n+" — "+n+" produk"));
-  var x=mk("button","Hapus");x.onclick=function(){PK().forEach(function(k){if(DATA[k].g===G.n)delete DATA[k].g});gl().splice(i,1);dirty();drawG()};r.appendChild(x);b.appendChild(r)});
+function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");r.appendChild(mk("span",(G.img?"🖼 ":(G.ic||"📁")+" ")+G.n+" — "+n+" produk"));
+  var x=mk("button","Hapus");x.onclick=function(){PK().forEach(function(k){if(DATA[k].g===G.n)delete DATA[k].g});gl().splice(i,1);dirty();drawG()};var ft=mk("button",G.img?"Ganti foto":"Foto");ft.onclick=function(){var f=document.createElement("input");f.type="file";f.accept="image/*";f.onchange=async function(){if(!f.files[0])return;try{G.img=await prep(f.files[0],160,true,0.82);dirty();drawG()}catch(e){}};f.click()};var bb=mk("div");bb.style.cssText="display:flex;gap:6px";bb.appendChild(ft);bb.appendChild(x);r.appendChild(bb);b.appendChild(r)});
   if(!gl().length)b.appendChild(mk("div","Belum ada kelompok.","msg"));
   var sg=$("gsel"),sp=$("gps");sg.innerHTML="";sp.innerHTML="";var o0=mk("option","(tanpa kelompok)");o0.value="";sg.appendChild(o0);gl().forEach(function(G){var o=mk("option",G.n);o.value=G.n;sg.appendChild(o)});
   PK().forEach(function(k){var o=mk("option",k+(DATA[k].g?"  ["+DATA[k].g+"]":""));o.value=k;sp.appendChild(o)})}
-$("gadd").onclick=function(){var n=$("gn").value.trim();if(!n||gl().some(function(G){return G.n===n}))return;gl().push({n:n,ic:$("gi").value.trim()||"📁"});$("gn").value="";$("gi").value="";dirty();drawG()};
+$("gadd").onclick=function(){var n=$("gn").value.trim();if(!n||gl().some(function(G){return G.n===n}))return;var g={n:n,ic:$("gi").value.trim()||"📁"};if(GIMG)g.img=GIMG;gl().push(g);GIMG="";$("gil").textContent="Foto kelompok (opsional, lebih bagus dari emoji)";$("gn").value="";$("gi").value="";dirty();drawG()};
 $("gset").onclick=function(){var k=$("gps").value;if(!DATA[k])return;var g=$("gsel").value;if(g)DATA[k].g=g;else delete DATA[k].g;dirty();drawG()};
 function drawD(){var k0=$("dps").value,s=$("dps");s.innerHTML="";PK().forEach(function(k){var o=mk("option",k);o.value=k;s.appendChild(o)});if(k0&&DATA[k0])s.value=k0;dFill()}
 function dFill(){var k=$("dps").value,d=DATA[k];$("dpc").value=(d&&d.disc)||"";var s=$("dpk");s.innerHTML="";
