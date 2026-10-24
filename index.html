@@ -116,12 +116,17 @@ input[type=password],select{width:100%;padding:12px;border-radius:12px;border:1.
 .dsc{background:#ff3b45;color:#fff;font:800 11px Arial,sans-serif;padding:2px 7px;border-radius:6px;font-style:normal}
 .ac>.dsc{position:absolute;top:12px;right:10px}
 .ffh[hidden]{display:none}
+.tk{overflow:hidden;white-space:nowrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#09090c;padding:7px 0}.tk[hidden]{display:none}
+.tkm{display:inline-block;white-space:nowrap;padding-left:100%;animation:mq 22s linear infinite}.tkm span{font-size:13px;color:#d9d9e2}
+@keyframes mq{to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.tkm{padding-left:12px;white-space:normal}}
 </style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik+Glitch&amp;display=swap">
 </head>
 <body>
 <header><img class="av" alt=""><div class="sep"></div><div class="brand" data-text="ELZ STR">ELZ STR</div></header>
+<div class="tk" id="tk" hidden><div class="tkm"><span id="tkt"></span></div></div>
 <main>
   <section id="home">
     <div class="hero2"><div class="in">
@@ -140,9 +145,12 @@ input[type=password],select{width:100%;padding:12px;border-radius:12px;border:1.
     <div class="ffg" id="jg"></div>
   </section>
 
+  <section id="si" class="hide"><div class="cat">Info ELZ STR</div><div class="panel"><div id="infoT" style="white-space:pre-line;line-height:1.7"></div>
+    <a class="btn" id="infoWa" target="_blank" rel="noopener">💬 Chat WA ELZ STR</a>
+    <a class="btn ghost" href="https://whatsapp.com/channel/0029Vb7F5hxLSmbWTjcNTp3x" target="_blank" rel="noopener">📢 Saluran WhatsApp</a></div></section>
   <section id="sj" class="hide"><button class="back" id="backj">‹ Kembali</button><div class="cat">Jaspot — Titipan Akun</div><div class="ffg" id="jg2"></div></section>
   <section id="sf" class="hide"><button class="back" id="backf">‹ Kembali</button><div class="cat">Ajukan Jaspot</div><div class="panel">
-    <div class="sum">Titipkan akunmu untuk dijual. Setelah disetujui admin, otomatis tampil di web.</div>
+    <div class="sum">Titipkan akunmu untuk dijual. Setelah disetujui admin, otomatis tampil di web. Nomor WA-mu ikut tampil sebagai tombol "Pemilik" supaya calon pembeli bisa menghubungimu langsung.</div>
     <label for="jn">Nama</label><input type="text" id="jn" autocomplete="name">
     <label for="jw">Nomor WhatsApp</label><input type="tel" id="jw" inputmode="tel" placeholder="08xxxxxxxxxx">
     <label for="jt">Judul</label><input type="text" id="jt" placeholder="mis. Akun SG OPM Lv 70">
@@ -220,6 +228,7 @@ input[type=password],select{width:100%;padding:12px;border-radius:12px;border:1.
   <a href="https://whatsapp.com/channel/0029Vb7F5hxLSmbWTjcNTp3x" target="_blank" rel="noopener"><i>📢<u class="dot"></u></i>Saluran</a>
   <button id="nHome" class="on"><i>🏠</i>Home</button>
   <button id="nOrd"><i>🧾</i>Antrian</button>
+  <button id="nInfo"><i>ℹ️</i>Info</button>
 </nav>
 <div class="toast hide" id="toast"></div>
 
@@ -236,8 +245,8 @@ var cat=null, sel=null, order=null, keys=Object.keys(DATA);
 
 if(QR_SRC)[].forEach.call(document.querySelectorAll("[data-bg]"),function(e){e.style.backgroundImage='url("'+QR_SRC+'")'});
 
-function view(id){["home","s1","s2","s3","s4","s6","s7","sg","sj","sf"].forEach(function(s){$(s).classList.toggle("hide",s!==id)});
-  $("nHome").classList.toggle("on",id==="home");$("nOrd").classList.toggle("on",id==="s4");window.scrollTo(0,0)}
+function view(id){["home","s1","s2","s3","s4","s6","s7","sg","sj","sf","si"].forEach(function(s){$(s).classList.toggle("hide",s!==id)});
+  $("nHome").classList.toggle("on",id==="home");$("nOrd").classList.toggle("on",id==="s4");$("nInfo").classList.toggle("on",id==="si");window.scrollTo(0,0)}
 function toast(t){var e=$("toast");e.textContent=t;e.classList.remove("hide");setTimeout(function(){e.classList.add("hide")},2200)}
 
 function mkCard(k){
@@ -251,9 +260,9 @@ function inG(k){return DATA[k].un!=="AKUN"&&k.charAt(0)!=="_"}
 function ep(k,it){var d=DATA[k]||{},p=(d.pd&&d.pd[it[0]]!=null)?d.pd[it[0]]:(d.disc||0);p=Math.max(0,Math.min(99,+p||0));return{pct:p,orig:it[1],price:Math.round(it[1]*(100-p)/100)}}
 function buildGrid(){var g=$("grid");g.innerHTML="";var used={};
   (DATA.__groups||[]).forEach(function(G){var ks=PK().filter(function(k){return inG(k)&&DATA[k].g===G.n});if(!ks.length)return;ks.forEach(function(k){used[k]=1});
-    var c=document.createElement("div");c.className="card";c.innerHTML='<div class="ic">'+(G.ic||"📁")+'</div><h3></h3><p>'+ks.length+' produk</p><button class="pill">BUKA →</button>';
+    var c=document.createElement("div");c.className="card";c.innerHTML='<div class="ic">'+(G.img?'<img src="'+G.img+'" alt="">':(G.ic||"📁"))+'</div><h3></h3><p>'+ks.length+' produk</p><button class="pill">BUKA →</button>';
     c.querySelector("h3").textContent=G.n;c.onclick=function(){openGroup(G.n)};g.appendChild(c)});
-  PK().forEach(function(k){if(inG(k)&&!used[k])g.appendChild(mkCard(k))});promoCards()}
+  PK().forEach(function(k){if(inG(k)&&!used[k])g.appendChild(mkCard(k))});promoCards();tkBuild()}
 function openGroup(n){$("gname").textContent=n;var g=$("gg");g.innerHTML="";PK().forEach(function(k){if(inG(k)&&DATA[k].g===n)g.appendChild(mkCard(k))});view("sg")}
 function promoCards(){var b=$("prg"),L=[];b.innerHTML="";PK().forEach(function(k){var d=DATA[k];if(d.so)return;d.p.forEach(function(it,i){var e=ep(k,it);if(e.pct&&(d.sp||[]).indexOf(it[0])<0)L.push({k:k,i:i,it:it,e:e})})});
   $("prh").hidden=!L.length;L.slice(0,6).forEach(function(o){var c=document.createElement("div");c.className="ac";c.innerHTML='<div class="bd"><div class="no"></div><div class="nt"></div><div class="pr"><s style="display:block;font:400 12px Arial;color:#9a9aa6"></s><span></span></div><button class="pill">Lihat →</button></div>';
@@ -359,12 +368,26 @@ $("conf").onclick=async function(){var b=this;if(b.disabled)return;b.disabled=tr
   catch(e){$("cerr").textContent="Gagal mengirim pesanan. Coba lagi sebentar."}
   b.disabled=false;b.textContent="Konfirmasi pesanan"};
 
+
+var ORDQ=[];
+function ago(t){var m=Math.floor((Date.now()-t)/6e4);return m<1?"baru saja":m<60?m+" menit lalu":Math.floor(m/60)<24?Math.floor(m/60)+" jam lalu":Math.floor(m/1440)+" hari lalu"}
+function tkBuild(){var m=[];(DATA.__ticker||[]).forEach(function(t){m.push("📢 "+t)});
+  PK().forEach(function(k){var d=DATA[k];if(d.so||d.un==="AKUN")return;var mx=d.disc||0;Object.keys(d.pd||{}).forEach(function(l){mx=Math.max(mx,d.pd[l])});if(mx>0)m.push("🏷️ Diskon "+mx+"% di "+k)});
+  (ORDQ||[]).slice(0,6).forEach(function(o){if(Date.now()-o.ts<864e5)m.push("🛒 "+o.n+" "+ago(o.ts)+" telah memesan "+o.prod)});
+  var tk=$("tk");tk.hidden=!m.length;var tx=m.join("      •      ");$("tkt").textContent=tx;$("tkt").parentNode.style.animationDuration=Math.max(14,Math.round(tx.length*0.17))+"s"}
+function loadTk(){fetch("/api/orders?view=queue",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.queue){ORDQ=j.queue;tkBuild()}}).catch(function(){})}
+loadTk();setInterval(loadTk,60000);
+var INFO_DEF="ELZ STR menyediakan barang dan jasa: APK, akun Free Fire, jasa live logo, dan lainnya.\n\nPesan langsung lewat web, bayar dengan QRIS, lalu admin memproses pesananmu.\n\nAda yang mau dititip jual? Pakai menu Jaspot.";
+$("nInfo").onclick=function(){$("infoT").textContent=DATA.__info||INFO_DEF;$("infoWa").href="https://wa.me/"+ADMIN_WA+"?text="+encodeURIComponent("Halo ELZ STR, saya mau tanya.");view("si")};
+function openWa(n,t){var u="https://wa.me/"+n+"?text="+encodeURIComponent(t),w=window.open(u,"_blank","noopener");if(!w)location.href=u}
+function ownerWa(it){var w=window.open("","_blank");fetch("/api/owner?id="+encodeURIComponent(it.id),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){if(!j.wa)throw 0;
+  var u="https://wa.me/"+j.wa+"?text="+encodeURIComponent("Halo, saya tertarik dengan akun JASPOT: "+it.title);if(w)w.location.href=u;else location.href=u}).catch(function(){if(w)w.close();alert("Kontak pemilik belum tersedia.")})}
 function jCards(box,limit){box.innerHTML="";if(!JL.length){var e=document.createElement("div");e.className="sum";e.textContent="Belum ada titipan. Ajukan akunmu lewat tombol Ajukan +";box.appendChild(e);return}
   JL.slice(0,limit||999).forEach(function(it){var sold=it.status==="sold",c=document.createElement("div");c.className="ac"+(sold?" sold":"");
-    c.innerHTML='<div class="im"></div><div class="bd"><div class="no"></div><div class="nt"></div><div class="pr"></div><button class="pill"></button></div>';
+    c.innerHTML='<div class="im"></div><div class="bd"><div class="no"></div><div class="nt"></div><div class="pr"></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px"><button class="vid jo">💬 Pemilik</button><button class="vid ja">Tanya admin</button></div><button class="pill"></button></div>';
     var im=c.querySelector(".im");if(it.photo)im.style.backgroundImage='url("/api/jaspot?img='+encodeURIComponent(it.id)+'")';else im.textContent="📮";
     c.querySelector(".no").textContent="▸ "+it.title;c.querySelector(".nt").textContent=it.desc||"";c.querySelector(".pr").textContent=rp(it.price);
-    var b=c.querySelector(".pill");b.textContent=sold?"SOLD OUT":"Pesan →";if(!sold)b.onclick=function(){buyJ(it)};box.appendChild(c)})}
+    var b=c.querySelector(".pill");b.textContent=sold?"SOLD OUT":"Pesan →";if(!sold)b.onclick=function(){buyJ(it)};c.querySelector(".jo").onclick=function(){ownerWa(it)};c.querySelector(".ja").onclick=function(){openWa(ADMIN_WA,"Halo ELZ STR, saya tertarik dengan JASPOT: "+it.title)};box.appendChild(c)})}
 function buyJ(it){cat="JASPOT";CUST={prod:"JASPOT",pkg:it.title,price:it.price,note:"Titipan #"+it.id.slice(-5).toUpperCase()};sel=0;$("qty").value=1;BK="sj";jCards($("jg2"));$("sum2").innerHTML=summary();view("s2")}
 function loadJ(){fetch("/api/jaspot",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.items){JL=j.items;jCards($("jg"),4);jCards($("jg2"))}}).catch(function(){})}
 loadJ();
