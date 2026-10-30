@@ -92,7 +92,7 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
     <button class="stc" data-f="menunggu"><b class="y" id="sB">0</b><span>BELUM</span></button>
     <button class="stc" data-f="selesai"><b class="g" id="sS">0</b><span>SELESAI</span></button>
   </div>
-  <div class="tabs"><button id="t1" class="on">Pesanan</button><button id="t2">Produk &amp; akun</button><button id="t3">Kelompok</button><button id="t4">Diskon</button><button id="t5">Pendapatan</button><button id="t6">Jaspot</button><button id="t7">Info &amp; Pesan</button><button id="t8">CS</button></div>
+  <div class="tabs"><button id="t1" class="on">Pesanan</button><button id="t2">Produk &amp; akun</button><button id="t3">Kelompok</button><button id="t4">Diskon</button><button id="t5">Pendapatan</button><button id="t6">Jaspot</button><button id="t7">Info &amp; Pesan</button><button id="t8">CS</button><button id="t9">Tampilan</button></div>
 
   <section id="s1">
     <div class="srch"><i>🔍</i><input type="search" id="q" placeholder="Cari ID pesanan / nama..."></div>
@@ -202,6 +202,25 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <div class="ab"><a class="btn g" id="cwa" target="_blank" rel="noopener" style="margin:0;flex:1" hidden>💬 Buka WhatsApp pembeli</a><button id="cdel">Hapus chat</button></div>
     </div>
   </section>
+  <section id="s9" class="hide">
+    <div class="panel"><b>QRIS pembayaran</b>
+      <img id="qpv" class="proof" alt="" hidden style="max-width:240px">
+      <div class="msg" id="qmsg"></div>
+      <label class="up" for="qif" id="qil">Ganti foto QRIS</label><input type="file" id="qif" class="vh" accept="image/*">
+      <button class="btn g" id="qrst">Pakai QRIS bawaan</button>
+      <div class="msg">Foto QRIS dikecilkan otomatis tapi tetap jelas untuk discan. Pakai foto yang QR-nya terlihat penuh.</div></div>
+    <div class="panel"><b>Logo / foto profil web</b>
+      <img id="lpv" class="pp" alt="" hidden style="margin:8px 0">
+      <label class="up" for="lif" id="lil">Ganti logo</label><input type="file" id="lif" class="vh" accept="image/*">
+      <button class="btn g" id="lrst">Pakai logo bawaan</button></div>
+    <div class="panel"><b>Warna web</b>
+      <label for="clr">Warna utama (tombol, harga, judul)</label>
+      <input type="color" id="clr" value="#46bfff" style="height:48px;padding:4px">
+      <div id="swa" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"></div>
+      <label for="clb">Warna latar</label>
+      <input type="color" id="clb" value="#050506" style="height:48px;padding:4px">
+      <button class="btn g" id="crst">Kembalikan warna bawaan</button></div>
+  </section>
   <div id="sv" class="hide"><button class="btn" id="save">Simpan semua perubahan</button><div class="msg" id="smsg"></div></div>
 </div>
 
@@ -227,8 +246,8 @@ $("plg").onclick=async function(){PW=$("pw").value;$("pe").textContent="";
 $("out").onclick=function(){PW="";try{localStorage.removeItem("elz_pw")}catch(e){}$("app").classList.add("hide");$("lg").classList.remove("hide")};
 if(PW)enter();
 
-function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});$("sv").classList.toggle("hide",!((n>=2&&n<=4)||n===7));if((n>=2&&n<=4)||n===7)loadProd();if(n===5)drawR();if(n===6)loadJ();if(n===8)loadCL()}
-[1,2,3,4,5,6,7,8].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
+function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});$("sv").classList.toggle("hide",!((n>=2&&n<=4)||n===7||n===9));if((n>=2&&n<=4)||n===7||n===9)loadProd();if(n===5)drawR();if(n===6)loadJ();if(n===8)loadCL()}
+[1,2,3,4,5,6,7,8,9].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
 [].forEach.call($("fl").children,function(b){b.onclick=function(){FL=b.getAttribute("data-f");[].forEach.call($("fl").children,function(x){x.classList.toggle("on",x===b)});tab(1);drawO()}});
 $("q").oninput=drawO;
 async function load(){try{var r=await api("/api/orders");if(r.ok){ORD=(await r.json()).orders||[];drawO()}}catch(e){}}
@@ -287,7 +306,7 @@ async function loadProd(){
     if(!DATA){try{DATA=await (await fetch("/defaults.json")).json()}catch(e){DATA={}}}}
   drawP()}
 function dirty(){var kb=Math.round(JSON.stringify(DATA).length/1024);$("smsg").textContent="Ada perubahan yang belum disimpan. Ukuran data: "+kb+" KB (maks 900 KB)."}
-function drawP(){var s=$("ps"),cur=s.value;s.innerHTML="";PK().forEach(function(k){var o=mk("option",k);o.value=k;s.appendChild(o)});if(cur&&DATA[cur])s.value=cur;drawK();fillD();fillV();drawG();drawD();drawI()}
+function drawP(){var s=$("ps"),cur=s.value;s.innerHTML="";PK().forEach(function(k){var o=mk("option",k);o.value=k;s.appendChild(o)});if(cur&&DATA[cur])s.value=cur;drawK();fillD();fillV();drawG();drawD();drawI();drawT()}
 function fillV(){var k=$("ps").value,s=$("vsel");s.innerHTML="";if(!DATA[k])return;DATA[k].p.forEach(function(it,i){var o=mk("option",(it[4]?"🎬 ":"")+it[0]);o.value=i;s.appendChild(o)});$("vin").value=(DATA[k].p[0]&&DATA[k].p[0][4])||"";DEb.set((DATA[k].p[0]&&DATA[k].p[0][2])||"")}
 function fillD(){var k=$("ps").value;$("ed").value=(DATA[k]&&DATA[k].d)||"";$("edl").value=(DATA[k]&&DATA[k].dl)||""}
 function drawK(){var k=$("ps").value,b=$("pk");b.innerHTML="";$("pdel").textContent="Hapus produk ini";if(!DATA[k])return;
@@ -344,15 +363,24 @@ $("crep").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();$("csnd")
 $("cdel").onclick=async function(){if($("cdel").textContent!=="Tekan lagi"){$("cdel").textContent="Tekan lagi";return}$("cdel").textContent="Hapus chat";try{await api("/api/chat",{method:"DELETE",body:JSON.stringify({cid:CCID})})}catch(e){}$("cback").click()};
 setInterval(function(){if(!$("app").classList.contains("hide"))loadCL(true)},20000);
 $("lkms").onclick=function(){var v=$("lkm").value;if(v==="opt")delete DATA.__lk;else DATA.__lk=v;dirty()};
-function mkDE(box){var d=mk("input"),rows=mk("div"),ad=mk("button","+ Tambah poin");d.type="text";d.placeholder="Deskripsi (kalimat utama paket)";d.style.marginTop="6px";ad.className="sm";ad.style.marginTop="8px";
-  box.appendChild(d);box.appendChild(rows);box.appendChild(ad);
-  function row(t,w){var r=mk("div",null,"ar");r.style.cssText="gap:6px;padding:6px 0";var i=mk("input");i.type="text";i.placeholder="Poin centang (mis. Support semua HP)";i.value=t||"";r.appendChild(i);
+function mkDE(box){var d=mk("input"),rows=mk("div"),ad=mk("button","+ Tambah poin");d.type="text";d.placeholder="Kalimat deskripsi (tampil di bawah judul)";d.style.marginTop="6px";ad.className="sm";ad.style.marginTop="8px";
+  box.appendChild(d);box.appendChild(mk("div","Daftar centang ✓: tulis satu poin di tiap kolom. ⚠ = peringatan kuning.","msg"));box.appendChild(rows);box.appendChild(ad);
+  function row(t,w){var r=mk("div",null,"ar");r.style.cssText="gap:6px;padding:6px 0";var i=mk("input");i.type="text";i.placeholder="Poin ✓ (satu poin satu kolom)";i.value=t||"";r.appendChild(i);
     var wb=mk("button","⚠");wb.title="Tandai peringatan (kuning)";wb.dataset.w=w?"1":"";var pt=function(){wb.style.background=wb.dataset.w?"#3a3000":"none";wb.style.color=wb.dataset.w?"#ffd24d":"inherit"};pt();wb.onclick=function(){wb.dataset.w=wb.dataset.w?"":"1";pt()};
     var x=mk("button","✕");x.onclick=function(){r.remove()};r.appendChild(wb);r.appendChild(x);rows.appendChild(r);return i}
   ad.onclick=function(){row("",false).focus()};
   return{get:function(){var L=[];if(d.value.trim())L.push(d.value.trim());[].forEach.call(rows.children,function(r){var t=r.querySelector("input").value.trim();if(t)L.push((r.querySelector("button").dataset.w?"!":"")+t)});return L.join("\n")},
-    set:function(str){rows.innerHTML="";var L=String(str||"").split("\n").map(function(x){return x.trim()}).filter(Boolean);d.value=L.length?L[0].replace(/^!\s*/,""):"";L.slice(1).forEach(function(t){row(t.replace(/^!\s*/,""),/^!/.test(t))})}}}
-var DEa=mkDE($("dEa")),DEb=mkDE($("dEb"));
+    set:function(str){rows.innerHTML="";var L=String(str||"").split("\n").map(function(x){return x.trim()}).filter(Boolean);d.value=L.length?L[0].replace(/^!\s*/,""):"";L.slice(1).forEach(function(t){row(t.replace(/^!\s*/,""),/^!/.test(t))});if(L.length<2){row("",false);row("",false)}}}}
+var DEa=mkDE($("dEa")),DEb=mkDE($("dEb"));DEa.set("");
+function drawT(){var q=$("qpv"),l=$("lpv");q.hidden=!DATA.__qris;if(DATA.__qris)q.src=DATA.__qris;$("qmsg").textContent=DATA.__qris?"QRIS kustom aktif.":"Memakai QRIS bawaan.";
+  l.hidden=!DATA.__logo;if(DATA.__logo)l.src=DATA.__logo;$("clr").value=DATA.__color||"#46bfff";$("clb").value=DATA.__bg||"#050506"}
+$("qif").onchange=async function(){var f=this.files[0];if(!f)return;try{var d,qs=[0.85,0.72,0.58];for(var i=0;i<qs.length;i++){d=await prep(f,1000,false,qs[i]);if(d.length<230000)break}DATA.__qris=d;$("qil").textContent="QRIS dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto QRIS gagal dibaca."}};
+$("qrst").onclick=function(){delete DATA.__qris;dirty();drawT()};
+$("lif").onchange=async function(){var f=this.files[0];if(!f)return;try{DATA.__logo=await prep(f,320,true,0.85);$("lil").textContent="Logo dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto logo gagal dibaca."}};
+$("lrst").onclick=function(){delete DATA.__logo;dirty();drawT()};
+$("clr").oninput=function(){DATA.__color=this.value;dirty()};$("clb").oninput=function(){DATA.__bg=this.value;dirty()};
+$("crst").onclick=function(){delete DATA.__color;delete DATA.__bg;dirty();drawT()};
+[["Biru","#46bfff"],["Hijau","#4ade80"],["Ungu","#a78bfa"],["Merah","#ff5c6c"],["Oranye","#ffa733"],["Pink","#ff7ac8"]].forEach(function(c){var b=mk("button",c[0]);b.style.cssText="padding:8px 14px;border-radius:999px;border:2px solid "+c[1]+";background:none;color:"+c[1]+";font:700 13px inherit;cursor:pointer";b.onclick=function(){DATA.__color=c[1];$("clr").value=c[1];dirty()};$("swa").appendChild(b)});
 function gl(){return DATA.__groups||(DATA.__groups=[])}
 function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");r.appendChild(mk("span",(G.img?"🖼 ":(G.ic||"📁")+" ")+G.n+" — "+n+" produk"));
   var x=mk("button","Hapus");x.onclick=function(){PK().forEach(function(k){if(DATA[k].g===G.n)delete DATA[k].g});gl().splice(i,1);dirty();drawG()};var ft=mk("button",G.img?"Ganti foto":"Foto");ft.onclick=function(){var f=document.createElement("input");f.type="file";f.accept="image/*";f.onchange=async function(){if(!f.files[0])return;try{G.img=await prep(f.files[0],160,true,0.82);dirty();drawG()}catch(e){}};f.click()};var bb=mk("div");bb.style.cssText="display:flex;gap:6px";bb.appendChild(ft);bb.appendChild(x);r.appendChild(bb);b.appendChild(r)});
