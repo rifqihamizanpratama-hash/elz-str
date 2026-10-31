@@ -120,18 +120,22 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <input type="number" id="kp" inputmode="numeric" placeholder="Harga (angka)" style="margin-top:6px">
       <div id="dEa"></div>
       <input type="text" id="kv" placeholder="Video (opsional): link atau /videos/nama.mp4" style="margin-top:6px">
+      <label class="up" for="kvup" id="kvl" style="margin-top:6px">⬆ Upload video dari HP</label><input type="file" id="kvup" class="vh" accept="video/*">
+      <div class="msg" id="kvm"></div>
       <label class="up" for="pif" id="pil">Gambar paket/akun (opsional)</label>
       <input type="file" id="pif" class="vh" accept="image/*">
       <button class="btn" id="kadd">Tambah</button>
     </div>
     <div class="panel"><b>Video untuk paket / akun yang sudah ada</b>
       <label for="vsel">Pilih paket / akun</label><select id="vsel"></select>
+      <label class="up" for="vup" id="vul">⬆ Upload video dari HP (maks 100 MB)</label><input type="file" id="vup" class="vh" accept="video/*">
+      <div class="msg" id="vum"></div>
       <input type="text" id="vin" placeholder="Link video atau /videos/nama.mp4 (kosongkan untuk hapus)" style="margin-top:6px">
       <button class="btn g" id="vsv">Simpan video</button>
       <label>Deskripsi paket ini</label>
       <div id="dEb"></div>
       <button class="btn g" id="vdns">Simpan deskripsi paket</button>
-      <div class="msg">Video ditampilkan di kartu Stok Akun FF. Link (YouTube/TikTok/Drive) dibuka di tab baru. Nama file seperti /videos/akun1.mp4 diputar langsung di web, setelah file videonya diunggah ke GitHub.</div>
+      <div class="msg">Tombol ▶ Lihat video muncul di kartu paket dan kartu akun FF. Link YouTube, TikTok, atau Google Drive diputar langsung di web. Atau upload video dari HP lewat tombol upload di atas (maks 100 MB).</div>
     </div>
     <div class="panel"><b>Produk baru</b>
       <input type="text" id="np" placeholder="Nama produk">
@@ -381,6 +385,22 @@ $("lrst").onclick=function(){delete DATA.__logo;dirty();drawT()};
 $("clr").oninput=function(){DATA.__color=this.value;dirty()};$("clb").oninput=function(){DATA.__bg=this.value;dirty()};
 $("crst").onclick=function(){delete DATA.__color;delete DATA.__bg;dirty();drawT()};
 [["Biru","#46bfff"],["Hijau","#4ade80"],["Ungu","#a78bfa"],["Merah","#ff5c6c"],["Oranye","#ffa733"],["Pink","#ff7ac8"]].forEach(function(c){var b=mk("button",c[0]);b.style.cssText="padding:8px 14px;border-radius:999px;border:2px solid "+c[1]+";background:none;color:"+c[1]+";font:700 13px inherit;cursor:pointer";b.onclick=function(){DATA.__color=c[1];$("clr").value=c[1];dirty()};$("swa").appendChild(b)});
+async function vidUp(file,el,done){
+  if(file.size>100*1024*1024){el.textContent="Video terlalu besar (maks 100 MB).";return}
+  var CS=524288,n=Math.ceil(file.size/CS),id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  try{for(var i=0;i<n;i++){
+      el.textContent="Mengunggah... "+Math.round(i/n*100)+"% (jangan tutup halaman)";
+      var buf=new Uint8Array(await file.slice(i*CS,(i+1)*CS).arrayBuffer()),bin="";for(var k=0;k<buf.length;k+=8192)bin+=String.fromCharCode.apply(null,buf.subarray(k,k+8192));
+      var data=btoa(bin),ok=false;
+      for(var t=0;t<3&&!ok;t++){var r=await api("/api/video?op=chunk&id="+id+"&n="+i,{method:"POST",body:JSON.stringify({data:data})});
+        if(r.status===401){el.textContent="Password salah. Keluar lalu masuk lagi.";return}ok=r.ok}
+      if(!ok)throw 0}
+    var r2=await api("/api/video?op=done&id="+id,{method:"POST",body:JSON.stringify({size:file.size,type:file.type||"video/mp4",chunks:n,cs:CS})});
+    if(!r2.ok)throw 0;
+    el.textContent="✓ Video terupload ("+Math.round(file.size/1024/1024*10)/10+" MB). Jangan lupa Simpan semua perubahan.";done("/api/video?id="+id)
+  }catch(e){el.textContent="Gagal mengunggah. Cek internet lalu coba lagi."}}
+$("vup").onchange=function(){var f=this.files[0];this.value="";if(f)vidUp(f,$("vum"),function(p){$("vin").value=p;$("vsv").click()})};
+$("kvup").onchange=function(){var f=this.files[0];this.value="";if(f)vidUp(f,$("kvm"),function(p){$("kv").value=p})};
 function gl(){return DATA.__groups||(DATA.__groups=[])}
 function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");r.appendChild(mk("span",(G.img?"🖼 ":(G.ic||"📁")+" ")+G.n+" — "+n+" produk"));
   var x=mk("button","Hapus");x.onclick=function(){PK().forEach(function(k){if(DATA[k].g===G.n)delete DATA[k].g});gl().splice(i,1);dirty();drawG()};var ft=mk("button",G.img?"Ganti foto":"Foto");ft.onclick=function(){var f=document.createElement("input");f.type="file";f.accept="image/*";f.onchange=async function(){if(!f.files[0])return;try{G.img=await prep(f.files[0],160,true,0.82);dirty();drawG()}catch(e){}};f.click()};var bb=mk("div");bb.style.cssText="display:flex;gap:6px";bb.appendChild(ft);bb.appendChild(x);r.appendChild(bb);b.appendChild(r)});
