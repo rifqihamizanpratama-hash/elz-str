@@ -452,7 +452,7 @@ $("shr").onclick=async function(){if(!DATA)return;var m=$("smsg"),b=JSON.stringi
 function flash(t,bad){var f=$("flash");if(!f){f=document.createElement("div");f.id="flash";f.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:99;padding:14px 16px;border-radius:16px;font-weight:700;text-align:center;box-shadow:0 8px 30px #000a;border:2px solid #3cb4ff;background:#16161a;color:#fff";document.body.appendChild(f)}
   f.textContent=t;f.style.borderColor=bad?"#ff5c6c":"#3cb4ff";f.hidden=false;clearTimeout(f._t);f._t=setTimeout(function(){f.hidden=true},8000)}
 new MutationObserver(function(){var t=$("smsg").textContent;if(t&&!/^(Menyimpan|Memeriksa|Tersimpan\. Memeriksa)/.test(t))flash(t,/gagal|salah|besar|⚠|isi /i.test(t))}).observe($("smsg"),{childList:true,characterData:true,subtree:true});
-if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(function(){});
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister()})}).catch(function(){});if(window.caches)caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k)})}).catch(function(){})}
 </script>
 </body>
 </html>
