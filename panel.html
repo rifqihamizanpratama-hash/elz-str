@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-:root{--bg:#050506;--card:#0c0c0f;--line:#34343c;--ink:#f2f2f7;--mut:#9a9aa6;--acc:#3cb4ff;--ok:#3cb4ff;--warn:#ffd24d;color-scheme:dark;box-sizing:border-box}
+:root{--bg:#050506;--card:#0c0c0f;--line:#34343c;--ink:#f2f2f7;--mut:#9a9aa6;--acc:#b8ff3d;--ok:#35ff6a;--warn:#ffd24d;color-scheme:dark;box-sizing:border-box}
 *{box-sizing:border-box}
 html,body{margin:0;background:radial-gradient(120% 50% at 50% 0,#17171c 0,var(--bg) 60%) fixed;color:var(--ink);font:16px/1.5 "Trebuchet MS",system-ui,sans-serif}
 body{padding:env(safe-area-inset-top,0px) 0 calc(28px + env(safe-area-inset-bottom,0px))}
@@ -71,7 +71,6 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
 .chatin{display:flex;gap:8px}.chatin input{flex:1}
 .cw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px;border:2px solid var(--line);border-radius:20px;background:linear-gradient(160deg,#101013,#0a0a0c);margin-top:10px;cursor:pointer;width:100%;text-align:left;color:var(--ink);font:inherit}
 .cw b{display:block}.cw span{font-size:13px;color:var(--mut)}.cw i{font-style:normal;background:#ff3b45;color:#fff;border-radius:999px;padding:2px 9px;font:800 12px Arial,sans-serif}
-
 </style>
 </head>
 <body>
@@ -218,6 +217,11 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <img id="lpv" class="pp" alt="" hidden style="margin:8px 0">
       <label class="up" for="lif" id="lil">Ganti logo</label><input type="file" id="lif" class="vh" accept="image/*">
       <button class="btn g" id="lrst">Pakai logo bawaan</button></div>
+    <div class="panel"><b>Banner halaman utama</b>
+      <img id="bpv" class="proof" alt="" hidden style="max-width:260px">
+      <label class="up" for="bif" id="bil">Ganti foto banner</label><input type="file" id="bif" class="vh" accept="image/*">
+      <button class="btn g" id="brst">Pakai banner bawaan</button>
+      <div class="msg">Pakai foto lebar (misal 1000×500). Kalau diisi, menggantikan banner teks bawaan.</div></div>
     <div class="panel"><b>Warna web</b>
       <label for="clr">Warna utama (tombol, harga, judul)</label>
       <input type="color" id="clr" value="#46bfff" style="height:48px;padding:4px">
@@ -251,7 +255,7 @@ $("plg").onclick=async function(){PW=$("pw").value;$("pe").textContent="";
 $("out").onclick=function(){PW="";try{localStorage.removeItem("elz_pw")}catch(e){}$("app").classList.add("hide");$("lg").classList.remove("hide")};
 if(PW)enter();
 
-function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});var sv=(n>=2&&n<=4)||n===7||n===9;$("sv").classList.toggle("hide",!sv);if(sv)loadProd();if(n===5)drawR();if(n===6)loadJ();if(n===8)loadCL()}
+function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});$("sv").classList.toggle("hide",!((n>=2&&n<=4)||n===7||n===9));if((n>=2&&n<=4)||n===7||n===9)loadProd();if(n===5)drawR();if(n===6)loadJ();if(n===8)loadCL()}
 [1,2,3,4,5,6,7,8,9].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
 [].forEach.call($("fl").children,function(b){b.onclick=function(){FL=b.getAttribute("data-f");[].forEach.call($("fl").children,function(x){x.classList.toggle("on",x===b)});tab(1);drawO()}});
 $("q").oninput=drawO;
@@ -378,7 +382,9 @@ function mkDE(box){var d=mk("input"),rows=mk("div"),ad=mk("button","+ Tambah poi
     set:function(str){rows.innerHTML="";var L=String(str||"").split("\n").map(function(x){return x.trim()}).filter(Boolean);d.value=L.length?L[0].replace(/^!\s*/,""):"";L.slice(1).forEach(function(t){row(t.replace(/^!\s*/,""),/^!/.test(t))});if(L.length<2){row("",false);row("",false)}}}}
 var DEa=mkDE($("dEa")),DEb=mkDE($("dEb"));DEa.set("");
 function drawT(){var q=$("qpv"),l=$("lpv");q.hidden=!DATA.__qris;if(DATA.__qris)q.src=DATA.__qris;$("qmsg").textContent=DATA.__qris?"QRIS kustom aktif.":"Memakai QRIS bawaan.";
-  l.hidden=!DATA.__logo;if(DATA.__logo)l.src=DATA.__logo;$("clr").value=DATA.__color||"#46bfff";$("clb").value=DATA.__bg||"#050506"}
+  l.hidden=!DATA.__logo;if(DATA.__logo)l.src=DATA.__logo;$("bpv").hidden=!DATA.__banner;if(DATA.__banner)$("bpv").src=DATA.__banner;$("clr").value=DATA.__color||"#46bfff";$("clb").value=DATA.__bg||"#050506"}
+$("bif").onchange=async function(){var f=this.files[0];if(!f)return;try{DATA.__banner=await prep(f,1000,false,0.75);$("bil").textContent="Banner dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto banner gagal dibaca."}};
+$("brst").onclick=function(){delete DATA.__banner;dirty();drawT()};
 $("qif").onchange=async function(){var f=this.files[0];if(!f)return;try{var d,qs=[0.85,0.72,0.58];for(var i=0;i<qs.length;i++){d=await prep(f,1000,false,qs[i]);if(d.length<230000)break}DATA.__qris=d;$("qil").textContent="QRIS dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto QRIS gagal dibaca."}};
 $("qrst").onclick=function(){delete DATA.__qris;dirty();drawT()};
 $("lif").onchange=async function(){var f=this.files[0];if(!f)return;try{DATA.__logo=await prep(f,320,true,0.85);$("lil").textContent="Logo dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto logo gagal dibaca."}};
@@ -388,22 +394,18 @@ $("crst").onclick=function(){delete DATA.__color;delete DATA.__bg;dirty();drawT(
 [["Biru","#46bfff"],["Hijau","#4ade80"],["Ungu","#a78bfa"],["Merah","#ff5c6c"],["Oranye","#ffa733"],["Pink","#ff7ac8"]].forEach(function(c){var b=mk("button",c[0]);b.style.cssText="padding:8px 14px;border-radius:999px;border:2px solid "+c[1]+";background:none;color:"+c[1]+";font:700 13px inherit;cursor:pointer";b.onclick=function(){DATA.__color=c[1];$("clr").value=c[1];dirty()};$("swa").appendChild(b)});
 async function vidUp(file,el,done){
   if(file.size>100*1024*1024){el.textContent="Video terlalu besar (maks 100 MB).";return}
-  var CS=524288,n=Math.ceil(file.size/CS),id=Date.now().toString(36)+Math.random().toString(36).slice(2,6),why="";
+  var CS=524288,n=Math.ceil(file.size/CS),id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
   try{for(var i=0;i<n;i++){
       el.textContent="Mengunggah... "+Math.round(i/n*100)+"% (jangan tutup halaman)";
       var buf=new Uint8Array(await file.slice(i*CS,(i+1)*CS).arrayBuffer()),bin="";for(var k=0;k<buf.length;k+=8192)bin+=String.fromCharCode.apply(null,buf.subarray(k,k+8192));
       var data=btoa(bin),ok=false;
-      for(var t=0;t<4&&!ok;t++){
-        try{var r=await api("/api/video?op=chunk&id="+id+"&n="+i,{method:"POST",body:JSON.stringify({data:data})});
-          if(r.status===401){el.textContent="Password salah. Keluar lalu masuk lagi.";return}
-          ok=r.ok;if(!ok){var tx="";try{tx=(await r.text()).slice(0,80)}catch(e){}why="kode "+r.status+(tx?" - "+tx:"")}}
-        catch(e){why="koneksi putus"}
-        if(!ok)await new Promise(function(z){setTimeout(z,800*(t+1))})}
-      if(!ok){el.textContent="Gagal mengunggah di "+Math.round(i/n*100)+"% ("+why+"). Coba lagi, atau pakai link video.";return}}
+      for(var t=0;t<3&&!ok;t++){var r=await api("/api/video?op=chunk&id="+id+"&n="+i,{method:"POST",body:JSON.stringify({data:data})});
+        if(r.status===401){el.textContent="Password salah. Keluar lalu masuk lagi.";return}ok=r.ok}
+      if(!ok)throw 0}
     var r2=await api("/api/video?op=done&id="+id,{method:"POST",body:JSON.stringify({size:file.size,type:file.type||"video/mp4",chunks:n,cs:CS})});
-    if(!r2.ok){var t2="";try{t2=(await r2.text()).slice(0,80)}catch(e){}el.textContent="Gagal menyelesaikan upload (kode "+r2.status+(t2?" - "+t2:"")+"). Coba lagi, atau pakai link video.";return}
+    if(!r2.ok)throw 0;
     el.textContent="✓ Video terupload ("+Math.round(file.size/1024/1024*10)/10+" MB). Jangan lupa Simpan semua perubahan.";done("/api/video?id="+id)
-  }catch(e){el.textContent="Gagal mengunggah: "+((e&&e.message)||"cek internet")+". Coba lagi, atau pakai link video."}}
+  }catch(e){el.textContent="Gagal mengunggah. Cek internet lalu coba lagi."}}
 $("vup").onchange=function(){var f=this.files[0];this.value="";if(f)vidUp(f,$("vum"),function(p){$("vin").value=p;$("vsv").click()})};
 $("kvup").onchange=function(){var f=this.files[0];this.value="";if(f)vidUp(f,$("kvm"),function(p){$("kv").value=p})};
 function gl(){return DATA.__groups||(DATA.__groups=[])}
