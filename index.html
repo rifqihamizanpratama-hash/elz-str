@@ -522,10 +522,11 @@ fetch("/api/data?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.st
   function tsv(v){if(typeof v==="string"&&isNaN(+v))return Date.parse(v);v=+v;return v&&v<1e12?v*1000:v}
   function ago(t){if(!t)return"";var m=Math.max(0,Math.round((Date.now()-t)/60000));return m<1?"baru saja":m<60?m+" menit lalu":m<1440?Math.round(m/60)+" jam lalu":Math.round(m/1440)+" hari lalu"}
   var lastT="";
-  function mqDraw(){var L=["Welcome to ELZ STR — cepat, aman, terpercaya"];
+  function mqDraw(){var L=[];
     ((window.DATA&&DATA.__ticker)||[]).forEach(function(x){x=String(x).trim();if(x)L.push(x)});
     try{PK().forEach(function(k){var d=DATA[k];if(d.so)return;d.p.forEach(function(it){var e=ep(k,it);if(e.pct&&(d.sp||[]).indexOf(it[0])<0&&L.length<30)L.push("Diskon "+e.pct+"% "+k+" "+it[0])})})}catch(e){}
     QM.forEach(function(x){L.push(x)});
+    if(!L.length){TK.hidden=true;lastT="";return}TK.hidden=false;
     var t=L.join("   •   ");if(t===lastT)return;lastT=t;
     MQ.textContent=t;MQ.style.animationDuration=Math.max(12,Math.round(t.length*0.14))+"s"}
   function tick(){if(off)return;fetch("/api/orders?view=queue",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){
