@@ -479,7 +479,7 @@ $("jsend").onclick=async function(){var b=this,e=$("je"),n=$("jn").value.trim(),
   b.disabled=false;b.textContent="Kirim untuk disetujui"};
 $("toq").onclick=function(){view("s4");loadQ()};
 $("toh").onclick=function(){view("home")};
-fetch("/api/data",{cache:"no-store"}).then(function(r){return r.status===200?r.json():null}).then(function(j){if(j&&j.DATA){DATA=j.DATA;buildGrid();accCards($("ffg"),4);if(window.applyCfg)applyCfg();if(window.mqDraw)mqDraw()}}).catch(function(){});
+fetch("/api/data?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.status===200?r.json():null}).then(function(j){if(j&&j.DATA){DATA=j.DATA;buildGrid();accCards($("ffg"),4);if(window.applyCfg)applyCfg();if(window.mqDraw)mqDraw()}}).catch(function(){});
 
 /* ===== Tema Roxy: tile, nav, ticker ===== */
 (function(){
