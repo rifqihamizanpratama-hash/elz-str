@@ -310,7 +310,7 @@ async function loadProd(){
   if(!DATA){try{var r=await fetch("/api/data",{cache:"no-store"});if(r.status===200)DATA=(await r.json()).DATA}catch(e){}
     if(!DATA){try{DATA=await (await fetch("/defaults.json")).json()}catch(e){DATA={}}}}
   drawP()}
-function dirty(){var kb=Math.round(JSON.stringify(DATA).length/1024);$("smsg").textContent="Ada perubahan yang belum disimpan. Ukuran data: "+kb+" KB (maks 900 KB)."+(kb>800?" Hampir penuh, tekan Hemat ukuran foto.":"")}
+function dirty(){var kb=Math.round(JSON.stringify(DATA).length/1024);$("smsg").textContent="Ada perubahan yang belum disimpan. Ukuran data: "+kb+" KB. Tekan Simpan semua perubahan."}
 function drawP(){var s=$("ps"),cur=s.value;s.innerHTML="";PK().forEach(function(k){var o=mk("option",k);o.value=k;s.appendChild(o)});if(cur&&DATA[cur])s.value=cur;drawK();fillD();fillV();drawG();drawD();drawI();drawT()}
 function fillV(){var k=$("ps").value,s=$("vsel");s.innerHTML="";if(!DATA[k])return;DATA[k].p.forEach(function(it,i){var o=mk("option",(it[4]?"🎬 ":"")+it[0]);o.value=i;s.appendChild(o)});$("vin").value=(DATA[k].p[0]&&DATA[k].p[0][4])||"";DEb.set((DATA[k].p[0]&&DATA[k].p[0][2])||"")}
 function fillD(){var k=$("ps").value;$("ed").value=(DATA[k]&&DATA[k].d)||"";$("edl").value=(DATA[k]&&DATA[k].dl)||""}
@@ -438,9 +438,11 @@ $("save").onclick=async function(){var m=$("smsg");m.textContent="Menyimpan...";
     if(r.status===401){m.textContent="Password salah. Keluar lalu masuk lagi.";return}
     if(r.status===413){m.textContent="Data terlalu besar. Hapus beberapa foto atau akun lama.";return}
     if(!r.ok){m.textContent="Gagal menyimpan (kode "+r.status+").";return}
-    m.textContent="Tersimpan. Memeriksa server...";var sent=JSON.stringify(DATA).length;
-    try{var v=await fetch("/api/data?v="+Date.now(),{cache:"no-store"});var j=v.status===200?await v.json():null,got=j&&j.DATA?JSON.stringify(j.DATA).length:0;
-      m.textContent=got===sent?"✓ Tersimpan & terverifikasi ("+Math.round(sent/1024)+" KB). Buka web lalu refresh.":"⚠ Ukuran di server ("+Math.round(got/1024)+" KB) beda dari yang dikirim ("+Math.round(sent/1024)+" KB). Perubahan mungkin belum tersimpan."}
+    m.textContent="Tersimpan. Memeriksa server...";
+    function norm(o){if(typeof o==="string")return(o.indexOf("data:image")===0||o.indexOf("/api/img?id=")===0)?"IMG":o;if(Array.isArray(o))return o.map(norm);if(o&&typeof o==="object"){var x={};Object.keys(o).forEach(function(k){x[k]=norm(o[k])});return x}return o}
+    try{var v=await fetch("/api/data?v="+Date.now(),{cache:"no-store"});var j=v.status===200?await v.json():null;
+      if(j&&j.DATA&&JSON.stringify(norm(j.DATA))===JSON.stringify(norm(DATA))){var kb=Math.round(JSON.stringify(j.DATA).length/1024);DATA=j.DATA;try{drawP()}catch(e){}m.textContent="✓ Tersimpan & terverifikasi ("+kb+" KB di server). Buka web lalu refresh."}
+      else m.textContent="⚠ Isi data di server beda dari yang dikirim. Perubahan mungkin belum tersimpan."}
     catch(e){m.textContent="Tersimpan, tapi gagal memeriksa server."}}catch(e){m.textContent="Gagal menyimpan. Cek internet."}};
 function toImg(src){return new Promise(function(ok,no){var im=new Image();im.onload=function(){ok(im)};im.onerror=no;im.src=src})}
 async function recomp(src,max,q){var im=await toImg(src),c=document.createElement("canvas"),k=Math.min(1,max/Math.max(im.width,im.height));c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);return c.toDataURL("image/jpeg",q)}
