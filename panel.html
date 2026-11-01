@@ -437,7 +437,11 @@ $("save").onclick=async function(){var m=$("smsg");m.textContent="Menyimpan...";
   try{var r=await api("/api/data",{method:"POST",body:JSON.stringify({DATA:DATA})});
     if(r.status===401){m.textContent="Password salah. Keluar lalu masuk lagi.";return}
     if(r.status===413){m.textContent="Data terlalu besar. Hapus beberapa foto atau akun lama.";return}
-    if(!r.ok){m.textContent="Gagal menyimpan (kode "+r.status+").";return}m.textContent="Tersimpan! Sudah tampil di web."}catch(e){m.textContent="Gagal menyimpan. Cek internet."}};
+    if(!r.ok){m.textContent="Gagal menyimpan (kode "+r.status+").";return}
+    m.textContent="Tersimpan. Memeriksa server...";var sent=JSON.stringify(DATA).length;
+    try{var v=await fetch("/api/data?v="+Date.now(),{cache:"no-store"});var j=v.status===200?await v.json():null,got=j&&j.DATA?JSON.stringify(j.DATA).length:0;
+      m.textContent=got===sent?"✓ Tersimpan & terverifikasi ("+Math.round(sent/1024)+" KB). Buka web lalu refresh.":"⚠ Ukuran di server ("+Math.round(got/1024)+" KB) beda dari yang dikirim ("+Math.round(sent/1024)+" KB). Perubahan mungkin belum tersimpan."}
+    catch(e){m.textContent="Tersimpan, tapi gagal memeriksa server."}}catch(e){m.textContent="Gagal menyimpan. Cek internet."}};
 function toImg(src){return new Promise(function(ok,no){var im=new Image();im.onload=function(){ok(im)};im.onerror=no;im.src=src})}
 async function recomp(src,max,q){var im=await toImg(src),c=document.createElement("canvas"),k=Math.min(1,max/Math.max(im.width,im.height));c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);return c.toDataURL("image/jpeg",q)}
 $("shr").onclick=async function(){if(!DATA)return;var m=$("smsg"),b=JSON.stringify(DATA).length,n=0;m.textContent="Mengecilkan foto...";
@@ -445,6 +449,9 @@ $("shr").onclick=async function(){if(!DATA)return;var m=$("smsg"),b=JSON.stringi
   for(var k of PK()){await fix(DATA[k],"img",200,0.65);for(var it of DATA[k].p)await fix(it,3,420,0.6)}
   for(var g of gl())await fix(g,"img",200,0.65);
   var a=JSON.stringify(DATA).length;m.textContent=n?"Selesai: "+n+" foto dikecilkan ("+Math.round(b/1024)+" KB jadi "+Math.round(a/1024)+" KB). Tekan Simpan semua perubahan.":"Foto sudah cukup kecil ("+Math.round(b/1024)+" KB)."};
+function flash(t,bad){var f=$("flash");if(!f){f=document.createElement("div");f.id="flash";f.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:99;padding:14px 16px;border-radius:16px;font-weight:700;text-align:center;box-shadow:0 8px 30px #000a;border:2px solid #3cb4ff;background:#16161a;color:#fff";document.body.appendChild(f)}
+  f.textContent=t;f.style.borderColor=bad?"#ff5c6c":"#3cb4ff";f.hidden=false;clearTimeout(f._t);f._t=setTimeout(function(){f.hidden=true},8000)}
+new MutationObserver(function(){var t=$("smsg").textContent;if(t&&!/^(Menyimpan|Memeriksa|Tersimpan\. Memeriksa)/.test(t))flash(t,/gagal|salah|besar|⚠|isi /i.test(t))}).observe($("smsg"),{childList:true,characterData:true,subtree:true});
 if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(function(){});
 </script>
 </body>
