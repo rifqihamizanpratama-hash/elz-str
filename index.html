@@ -248,6 +248,16 @@ nav a,nav button{white-space:nowrap;font-size:13px}
 .tnx b{font-size:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tnx small{color:var(--mut);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tnr>svg{width:26px;height:26px;color:var(--acc);flex:none}
+
+/* ===== CS CHAT ===== */
+#csP{position:fixed;left:0;right:0;bottom:0;margin:0 auto;max-width:560px;height:78vh;z-index:21;display:flex;flex-direction:column;background:#0b0b0e;border:1.5px solid var(--line);border-bottom:0;border-radius:24px 24px 0 0;box-shadow:0 -10px 40px #000c}
+#csP[hidden]{display:none}
+.csw{padding:10px 14px 0}.csw a{display:block;text-align:center;text-decoration:none}
+.csf{padding:14px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line)}
+.csf[hidden],#csB[hidden]{display:none}
+#nCS{position:relative}.bdg{position:absolute;top:2px;right:20%;width:10px;height:10px;border-radius:50%;background:#ff4d3d}
+.mb2 small{display:block;margin-top:4px;font-size:11px;opacity:.7}
+.csn{align-self:center;max-width:92%;padding:8px 12px;border-radius:12px;background:#2a1a1a;color:#ffb4b0;font-size:13px;text-align:center}
 </style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap">
@@ -338,7 +348,7 @@ nav a,nav button{white-space:nowrap;font-size:13px}
   <button id="nJ"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>Tentang</button>
   <button id="nHome" class="on"><svg class="i" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>Home</button>
   <button id="nOrd"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Antrian</button>
-  <a id="nWa" href="https://wa.me/6289531234899" target="_blank" rel="noopener"><svg class="i" viewBox="0 0 24 24"><path d="M4 20l1.4-4.2A8 8 0 1 1 8.4 18.8z"/></svg>WA Admin</a>
+  <button id="nCS"><svg class="i" viewBox="0 0 24 24"><path d="M4 20l1.4-4.2A8 8 0 1 1 8.4 18.8z"/></svg>CS</button>
 </nav>
 <div class="toast hide" id="toast"></div>
 
@@ -532,13 +542,13 @@ fetch("/api/data?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.st
   function openP(){P.hidden=false;B.hidden=true;if(!M.children.length)msg("Halo! Aku asisten ELZ STR. Mau tanya harga, cara order, atau cek stok akun?","b")}
   function closeP(){P.hidden=true;B.hidden=false}
   function go(f){closeP();f()}
-  var CSA=["Chat CS di WhatsApp",function(){cs("Halo admin ELZ STR, saya butuh bantuan.")}];
+  var CSA=["Chat dengan CS",function(){go(function(){openCS()})}];
   function has(q,a){return a.some(function(w){return q.indexOf(w)>-1})}
   var STOP=["akun","apk","paket","full","update"];
   function list(k){var d=DATA[k],t=k+(d.so?" (SOLD OUT)":"")+":";d.p.slice(0,8).forEach(function(it){t+="\n• "+it[0]+" — "+rp(ep(k,it).price)+((d.sp||[]).indexOf(it[0])>-1?" (habis)":"")});
     if(d.p.length>8)t+="\n…dan "+(d.p.length-8)+" paket lain";return t}
   function reply(raw){var q=raw.toLowerCase();
-    if(has(q,["cs","admin","komplain","lapor","hubungi","kontak","masalah"]))return msg("Siap, kamu bisa langsung chat CS lewat WhatsApp.","b",[CSA]);
+    if(has(q,["cs","admin","komplain","lapor","hubungi","kontak","masalah"]))return msg("Siap, kamu bisa chat langsung dengan CS di sini.","b",[CSA]);
     if(has(q,["antrian","antrean","status","proses"]))return msg("Status pesananmu ada di menu Antrian. Statusnya berubah dari Menunggu jadi Selesai setelah admin konfirmasi.","b",[["Buka Antrian",function(){go(function(){view("s4");loadQ()})}]]);
     if(has(q,["tentang","grup","saluran","sosmed","instagram","sosial"]))return msg("Info grup, saluran, WhatsApp admin, dan sosial media ELZ STR ada di menu Tentang.","b",[["Buka Tentang",function(){go(function(){openAbout()})}]]);
     if(has(q,["bayar","qris","transfer","pembayaran"]))return msg("Pembayaran lewat QRIS. Setelah isi nama dan WhatsApp, QRIS muncul. Scan, bayar sesuai total, lalu unggah bukti pembayaran (boleh dikosongkan) dan konfirmasi pesanan.","b");
@@ -556,7 +566,7 @@ fetch("/api/data?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.st
   ["Cara order","Harga produk","Stok akun FF","Cek antrian","Hubungi CS"].forEach(function(t){var b=document.createElement("button");b.textContent=t;b.onclick=function(){ask(t)};$("aiC").appendChild(b)});
   function send(){var v=I.value.trim();if(!v)return;I.value="";ask(v)}
   B.onclick=openP;$("aiX").onclick=closeP;$("aiS").onclick=send;I.onkeydown=function(e){if(e.key==="Enter")send()};
-  $("aiCS").onclick=function(){cs("Halo admin ELZ STR, saya butuh bantuan.")};
+  $("aiCS").onclick=function(){closeP();openCS()};
 })();
 
 
@@ -604,5 +614,45 @@ if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then
       box.appendChild(p)})}
   window.openAbout=function(){draw();view("sa")};
   $("backt").onclick=function(){view("home")};
+})();
+
+/* ===== CS Chat ===== */
+(function(){
+  var KEY="elz_cs",SEEN="elz_cs_seen",S=null,TM=null,last="";
+  try{S=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+  var lg=document.querySelector(".logo").src,P=document.createElement("div");P.id="csP";P.hidden=true;
+  P.innerHTML='<div class="ah"><img alt=""><div><div class="at">CS ELZ STR</div><div class="as">Chat langsung dengan admin</div></div><button class="ax" id="csX" aria-label="Tutup">×</button></div>'+
+    '<div class="am" id="csM"></div>'+
+    '<div class="csf" id="csF" hidden><div class="sum">Isi nama dulu supaya admin tahu siapa yang chat.</div><input type="text" id="csN" placeholder="Nama kamu" maxlength="40" autocomplete="name"><input type="tel" id="csW" placeholder="Nomor WhatsApp (opsional)" maxlength="20" inputmode="tel"><button class="pill" id="csG">Mulai chat</button></div>'+
+    '<div class="ai-in" id="csB" hidden><input id="csI" type="text" placeholder="Tulis pesan untuk admin..." maxlength="500" autocomplete="off"><button class="pill" id="csS">Kirim</button></div>';
+  document.body.appendChild(P);P.querySelector(".ah img").src=lg;
+  var M=$("csM"),I=$("csI");
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+  function rid(){var a=new Uint8Array(16);(window.crypto||window.msCrypto).getRandomValues(a);return Array.prototype.map.call(a,function(b){return(b%36).toString(36)}).join("")+Date.now().toString(36)}
+  function bubble(t,w,time){var d=document.createElement("div");d.className="mb2 "+w;d.appendChild(document.createTextNode(t));
+    if(time){var sm=document.createElement("small");sm.textContent=new Date(time).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});d.appendChild(sm)}return d}
+  function render(msgs,err){var key=JSON.stringify(msgs)+(err||"");if(key===last)return;last=key;
+    var end=M.scrollTop+M.clientHeight>=M.scrollHeight-60||!M.children.length;M.innerHTML="";
+    M.appendChild(bubble("Halo! Ada yang bisa dibantu? Tulis pesanmu di sini, admin akan membalas.","b"));
+    msgs.forEach(function(m){M.appendChild(bubble(m.t,m.r==="a"?"b":"u",m.ts))});
+    if(err){var n=document.createElement("div");n.className="csn";n.textContent=err;M.appendChild(n)}
+    if(end)M.scrollTop=M.scrollHeight}
+  function load(){if(!S)return;fetch("/api/chat?cid="+S.cid,{cache:"no-store"}).then(function(r){if(!r.ok)throw r.status;return r.json()}).then(function(j){var L=j.msgs||[];render(L);
+      try{localStorage.setItem(SEEN,String(L.filter(function(m){return m.r==="a"}).length))}catch(e){}badge(false)})
+    .catch(function(){render([],"Chat belum tersambung. Silakan coba lagi nanti.")})}
+  function showForm(){$("csF").hidden=!!S;$("csB").hidden=!S}
+  function badge(on){var b=$("nCS"),d=b.querySelector(".bdg");if(on&&!d){d=document.createElement("i");d.className="bdg";b.appendChild(d)}else if(!on&&d)d.remove()}
+  function poll(){if(!S||!P.hidden)return;fetch("/api/chat?cid="+S.cid,{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j)return;
+    var n=(j.msgs||[]).filter(function(m){return m.r==="a"}).length,seen=+localStorage.getItem(SEEN)||0;badge(n>seen)}).catch(function(){})}
+  window.openCS=function(){
+    P.hidden=false;var ab=$("aiB"),ah=$("aiH");if(ab)ab.hidden=true;if(ah)ah.hidden=true;showForm();last="";render([]);load();clearInterval(TM);TM=setInterval(load,5000)};
+  function close(){P.hidden=true;clearInterval(TM);var ab=$("aiB");if(ab&&$("aiP").hidden)ab.hidden=false}
+  $("csX").onclick=close;$("nCS").onclick=function(){window.openCS()};
+  $("csG").onclick=function(){var n=$("csN").value.trim();if(!n){$("csN").focus();return}S={cid:rid(),name:n,wa:$("csW").value.trim()};save();showForm();last="";load()};
+  function send(){var t=I.value.trim();if(!t||!S)return;I.value="";
+    fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({cid:S.cid,text:t,name:S.name,wa:S.wa})}).then(function(r){if(!r.ok)throw r.status;load()})
+    .catch(function(e){I.value=t;render([],"Pesan gagal terkirim ("+e+"). Coba lagi.")})}
+  $("csS").onclick=send;I.onkeydown=function(e){if(e.key==="Enter")send()};
+  setTimeout(poll,3000);setInterval(poll,30000);
 })();
 </script></body></html>
