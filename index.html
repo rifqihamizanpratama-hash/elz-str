@@ -212,6 +212,10 @@ nav #nHome.on{background:linear-gradient(135deg,var(--g1),var(--g2))}
 .mq{flex:1;min-width:0;overflow:hidden;white-space:nowrap;-webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
 .mt{display:inline-block;white-space:nowrap;font-weight:700;animation:mq 25s linear infinite;will-change:transform}
 @keyframes mq{to{transform:translateX(-50%)}}
+
+/* ===== marquee berurutan: mulai dari Welcome ===== */
+.mt{padding-left:100%;animation:mq 25s linear infinite}
+@keyframes mq{to{transform:translateX(-100%)}}
 </style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap">
@@ -475,7 +479,7 @@ $("jsend").onclick=async function(){var b=this,e=$("je"),n=$("jn").value.trim(),
   b.disabled=false;b.textContent="Kirim untuk disetujui"};
 $("toq").onclick=function(){view("s4");loadQ()};
 $("toh").onclick=function(){view("home")};
-fetch("/api/data",{cache:"no-store"}).then(function(r){return r.status===200?r.json():null}).then(function(j){if(j&&j.DATA){DATA=j.DATA;buildGrid();accCards($("ffg"),4)}}).catch(function(){});
+fetch("/api/data",{cache:"no-store"}).then(function(r){return r.status===200?r.json():null}).then(function(j){if(j&&j.DATA){DATA=j.DATA;buildGrid();accCards($("ffg"),4);if(window.applyCfg)applyCfg();if(window.mqDraw)mqDraw()}}).catch(function(){});
 
 /* ===== Tema Roxy: tile, nav, ticker ===== */
 (function(){
@@ -488,18 +492,17 @@ fetch("/api/data",{cache:"no-store"}).then(function(r){return r.status===200?r.j
   var TK=$("tick"),MQ=$("tkt"),QM=[],off=0;
   function tsv(v){if(typeof v==="string"&&isNaN(+v))return Date.parse(v);v=+v;return v&&v<1e12?v*1000:v}
   function ago(t){if(!t)return"";var m=Math.max(0,Math.round((Date.now()-t)/60000));return m<1?"baru saja":m<60?m+" menit lalu":m<1440?Math.round(m/60)+" jam lalu":Math.round(m/1440)+" hari lalu"}
-  function mqDraw(){var L=[];
-    ((window.DATA&&DATA.__ticker)||[]).forEach(function(x){L.push(String(x))});
+  var lastT="";
+  function mqDraw(){var L=["Welcome to ELZ STR — cepat, aman, terpercaya"];
+    ((window.DATA&&DATA.__ticker)||[]).forEach(function(x){x=String(x).trim();if(x)L.push(x)});
     try{PK().forEach(function(k){var d=DATA[k];if(d.so)return;d.p.forEach(function(it){var e=ep(k,it);if(e.pct&&(d.sp||[]).indexOf(it[0])<0&&L.length<30)L.push("Diskon "+e.pct+"% "+k+" "+it[0])})})}catch(e){}
     QM.forEach(function(x){L.push(x)});
-    if(!L.length)L.push("Selamat datang di ELZ STR — cepat, aman, terpercaya");
-    var t=L.join("   •   ")+"   •   ";MQ.innerHTML="";
-    for(var i=0;i<2;i++){var s=document.createElement("span");s.textContent=t;MQ.appendChild(s)}
-    MQ.style.animationDuration=Math.max(14,Math.round(t.length*0.2))+"s"}
+    var t=L.join("   •   ");if(t===lastT)return;lastT=t;
+    MQ.textContent=t;MQ.style.animationDuration=Math.max(12,Math.round(t.length*0.14))+"s"}
   function tick(){if(off)return;fetch("/api/orders?view=queue",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){
     var q=((j&&j.queue)||[]).slice();if(q.length&&q[0].ts)q.sort(function(a,b){return tsv(b.ts)-tsv(a.ts)});else q.reverse();
     QM=q.slice(0,5).map(function(o){return(o.n||"Seseorang")+" "+(ago(tsv(o.ts))||"")+" telah memesan "+(o.prod||"produk")});mqDraw()}).catch(function(){mqDraw()})}
-  mqDraw();tick();setTimeout(mqDraw,2500);setInterval(tick,45000);
+  window.mqDraw=mqDraw;mqDraw();tick();setInterval(tick,45000);
 })();
 
 /* ===== Asisten AI & CS ===== */
@@ -548,4 +551,13 @@ fetch("/api/data",{cache:"no-store"}).then(function(r){return r.status===200?r.j
 /* ===== Tile APK ===== */
 (function(){var b=$("qA");if(b)b.onclick=function(){var G=((window.DATA&&DATA.__groups)||[]).filter(function(g){return /apk/i.test(g.n)})[0];
   if(G)openGroup(G.n);else $("secp").scrollIntoView({behavior:"smooth",block:"start"})}})();
+
+/* ===== Terapkan pengaturan dari panel (logo, QRIS, WA, warna) ===== */
+function applyCfg(){var D=window.DATA||{},hex=/^#[0-9a-f]{3,8}$/i;
+  if(D.__logo)document.querySelectorAll(".logo,.av,#aiB img,.ah img").forEach(function(i){i.src=D.__logo});
+  if(D.__qris)QR_SRC=D.__qris;
+  if(D.__wa&&/^\d{9,15}$/.test(D.__wa)){ADMIN_WA=D.__wa;document.querySelectorAll('a[href*="wa.me/"]').forEach(function(a){a.href=a.href.replace(/wa\.me\/\d+/,"wa.me/"+D.__wa)})}
+  var st=document.getElementById("cfgst");if(!st){st=document.createElement("style");st.id="cfgst";document.head.appendChild(st)}
+  var c="";if(hex.test(D.__color||""))c+=":root{--acc:"+D.__color+"}";if(hex.test(D.__bg||""))c+="html{background:"+D.__bg+"}body{background:"+D.__bg+"!important}";
+  st.textContent=c}
 </script></body></html>
