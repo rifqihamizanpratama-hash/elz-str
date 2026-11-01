@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-:root{--bg:#050506;--card:#0c0c0f;--line:#34343c;--ink:#f2f2f7;--mut:#9a9aa6;--acc:#b8ff3d;--ok:#35ff6a;--warn:#ffd24d;color-scheme:dark;box-sizing:border-box}
+:root{--bg:#050506;--card:#0c0c0f;--line:#34343c;--ink:#f2f2f7;--mut:#9a9aa6;--acc:#3cb4ff;--ok:#3cb4ff;--warn:#ffd24d;color-scheme:dark;box-sizing:border-box}
 *{box-sizing:border-box}
 html,body{margin:0;background:radial-gradient(120% 50% at 50% 0,#17171c 0,var(--bg) 60%) fixed;color:var(--ink);font:16px/1.5 "Trebuchet MS",system-ui,sans-serif}
 body{padding:env(safe-area-inset-top,0px) 0 calc(28px + env(safe-area-inset-bottom,0px))}
@@ -71,6 +71,7 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
 .chatin{display:flex;gap:8px}.chatin input{flex:1}
 .cw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px;border:2px solid var(--line);border-radius:20px;background:linear-gradient(160deg,#101013,#0a0a0c);margin-top:10px;cursor:pointer;width:100%;text-align:left;color:var(--ink);font:inherit}
 .cw b{display:block}.cw span{font-size:13px;color:var(--mut)}.cw i{font-style:normal;background:#ff3b45;color:#fff;border-radius:999px;padding:2px 9px;font:800 12px Arial,sans-serif}
+
 </style>
 </head>
 <body>
@@ -217,11 +218,6 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <img id="lpv" class="pp" alt="" hidden style="margin:8px 0">
       <label class="up" for="lif" id="lil">Ganti logo</label><input type="file" id="lif" class="vh" accept="image/*">
       <button class="btn g" id="lrst">Pakai logo bawaan</button></div>
-    <div class="panel"><b>Banner halaman utama</b>
-      <img id="bpv" class="proof" alt="" hidden style="max-width:260px">
-      <label class="up" for="bif" id="bil">Ganti foto banner</label><input type="file" id="bif" class="vh" accept="image/*">
-      <button class="btn g" id="brst">Pakai banner bawaan</button>
-      <div class="msg">Pakai foto lebar (misal 1000×500). Kalau diisi, menggantikan banner teks bawaan.</div></div>
     <div class="panel"><b>Warna web</b>
       <label for="clr">Warna utama (tombol, harga, judul)</label>
       <input type="color" id="clr" value="#46bfff" style="height:48px;padding:4px">
@@ -230,7 +226,7 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <input type="color" id="clb" value="#050506" style="height:48px;padding:4px">
       <button class="btn g" id="crst">Kembalikan warna bawaan</button></div>
   </section>
-  <div id="sv" class="hide"><button class="btn" id="save">Simpan semua perubahan</button><div class="msg" id="smsg"></div></div>
+  <div id="sv" class="hide"><button class="btn" id="save">Simpan semua perubahan</button><button class="btn g" id="shr">Hemat ukuran foto</button><div class="msg" id="smsg"></div></div>
 </div>
 
 <script>
@@ -255,7 +251,7 @@ $("plg").onclick=async function(){PW=$("pw").value;$("pe").textContent="";
 $("out").onclick=function(){PW="";try{localStorage.removeItem("elz_pw")}catch(e){}$("app").classList.add("hide");$("lg").classList.remove("hide")};
 if(PW)enter();
 
-function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});$("sv").classList.toggle("hide",!((n>=2&&n<=4)||n===7||n===9));if((n>=2&&n<=4)||n===7||n===9)loadProd();if(n===5)drawR();if(n===6)loadJ();if(n===8)loadCL()}
+function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});var sv=(n>=2&&n<=4)||n===7||n===9;$("sv").classList.toggle("hide",!sv);if(sv)loadProd();if(n===5)drawR();if(n===6)loadJ();if(n===8)loadCL()}
 [1,2,3,4,5,6,7,8,9].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
 [].forEach.call($("fl").children,function(b){b.onclick=function(){FL=b.getAttribute("data-f");[].forEach.call($("fl").children,function(x){x.classList.toggle("on",x===b)});tab(1);drawO()}});
 $("q").oninput=drawO;
@@ -305,16 +301,16 @@ function drawJ(){var l=$("jl");l.innerHTML="";var pend=JA.filter(function(o){ret
     var bd=mk("button","Hapus");bd.onclick=async function(){if(bd.textContent!=="Tekan lagi"){bd.textContent="Tekan lagi";return}try{await api("/api/jaspot",{method:"DELETE",body:JSON.stringify({id:o.id})})}catch(e){}loadJ()};ab.appendChild(bd);c.appendChild(ab);l.appendChild(c)})}
 function PK(){return Object.keys(DATA).filter(function(k){return k.charAt(0)!=="_"})}
 var FFK="AKUN FF",NIMG="",PIMG="";
-function prep(f,max,sq,q){return new Promise(function(ok,no){var r=new FileReader();r.onerror=no;r.onload=function(){var im=new Image();im.onerror=no;im.onload=function(){
+function prep(f,max,sq,q){return new Promise(function(ok,no){var u=URL.createObjectURL(f),im=new Image();im.onerror=function(){URL.revokeObjectURL(u);no(new Error("format"))};im.onload=function(){
   var c=document.createElement("canvas"),x=c.getContext("2d");
   if(sq){var s=Math.min(im.width,im.height);c.width=c.height=max;x.drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,max,max)}
   else{var k=Math.min(1,max/Math.max(im.width,im.height));c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);x.drawImage(im,0,0,c.width,c.height)}
-  ok(c.toDataURL("image/jpeg",q))};im.src=r.result};r.readAsDataURL(f)})}
+  URL.revokeObjectURL(u);ok(c.toDataURL("image/jpeg",q))};im.src=u})}
 async function loadProd(){
   if(!DATA){try{var r=await fetch("/api/data",{cache:"no-store"});if(r.status===200)DATA=(await r.json()).DATA}catch(e){}
     if(!DATA){try{DATA=await (await fetch("/defaults.json")).json()}catch(e){DATA={}}}}
   drawP()}
-function dirty(){var kb=Math.round(JSON.stringify(DATA).length/1024);$("smsg").textContent="Ada perubahan yang belum disimpan. Ukuran data: "+kb+" KB (maks 900 KB)."}
+function dirty(){var kb=Math.round(JSON.stringify(DATA).length/1024);$("smsg").textContent="Ada perubahan yang belum disimpan. Ukuran data: "+kb+" KB (maks 900 KB)."+(kb>800?" Hampir penuh, tekan Hemat ukuran foto.":"")}
 function drawP(){var s=$("ps"),cur=s.value;s.innerHTML="";PK().forEach(function(k){var o=mk("option",k);o.value=k;s.appendChild(o)});if(cur&&DATA[cur])s.value=cur;drawK();fillD();fillV();drawG();drawD();drawI();drawT()}
 function fillV(){var k=$("ps").value,s=$("vsel");s.innerHTML="";if(!DATA[k])return;DATA[k].p.forEach(function(it,i){var o=mk("option",(it[4]?"🎬 ":"")+it[0]);o.value=i;s.appendChild(o)});$("vin").value=(DATA[k].p[0]&&DATA[k].p[0][4])||"";DEb.set((DATA[k].p[0]&&DATA[k].p[0][2])||"")}
 function fillD(){var k=$("ps").value;$("ed").value=(DATA[k]&&DATA[k].d)||"";$("edl").value=(DATA[k]&&DATA[k].dl)||""}
@@ -328,9 +324,9 @@ function drawK(){var k=$("ps").value,b=$("pk");b.innerHTML="";$("pdel").textCont
     var x=mk("button","Hapus");x.onclick=function(){DATA[k].p.splice(i,1);dirty();drawK()};
     bb.appendChild(t);bb.appendChild(x);r.appendChild(bb);b.appendChild(r)})}
 $("ps").onchange=function(){drawK();fillD();fillV()};$("vsel").onchange=function(){var k=$("ps").value,it=DATA[k]&&DATA[k].p[+$("vsel").value];$("vin").value=(it&&it[4])||"";DEb.set((it&&it[2])||"")};
-$("cif").onchange=async function(){var f=this.files[0],k=$("ps").value;if(!f||!DATA[k])return;try{DATA[k].img=await prep(f,160,true,0.82);dirty();$("cil").textContent="Gambar diganti. Jangan lupa Simpan"}catch(e){$("smsg").textContent="Gambar gagal dibaca."}};
-$("pif").onchange=async function(){var f=this.files[0];if(!f)return;try{PIMG=await prep(f,560,false,0.72);$("pil").textContent="Gambar dipilih (ketuk untuk ganti)"}catch(e){$("smsg").textContent="Gambar gagal dibaca."}};
-$("nif").onchange=async function(){var f=this.files[0];if(!f)return;try{NIMG=await prep(f,160,true,0.82);$("nil").textContent="Gambar dipilih (ketuk untuk ganti)"}catch(e){$("smsg").textContent="Gambar gagal dibaca."}};
+$("cif").onchange=async function(){var f=this.files[0],k=$("ps").value;if(!f||!DATA[k])return;try{DATA[k].img=await prep(f,160,true,0.7);dirty();$("cil").textContent="Gambar diganti. Jangan lupa Simpan"}catch(e){$("smsg").textContent="Gambar gagal dibaca. Coba foto JPG/PNG lain."}};
+$("pif").onchange=async function(){var f=this.files[0];if(!f)return;try{PIMG=await prep(f,420,false,0.6);$("pil").textContent="Gambar dipilih (ketuk untuk ganti)"}catch(e){$("smsg").textContent="Gambar gagal dibaca. Coba foto JPG/PNG lain."}};
+$("nif").onchange=async function(){var f=this.files[0];if(!f)return;try{NIMG=await prep(f,160,true,0.7);$("nil").textContent="Gambar dipilih (ketuk untuk ganti)"}catch(e){$("smsg").textContent="Gambar gagal dibaca. Coba foto JPG/PNG lain."}};
 $("eds").onclick=function(){var k=$("ps").value;if(!DATA[k])return;DATA[k].d=$("ed").value.trim();var l=$("edl").value.trim();if(l)DATA[k].dl=l;else delete DATA[k].dl;dirty()};
 $("pso").onclick=function(){var k=$("ps").value;if(!DATA[k])return;if(DATA[k].so)delete DATA[k].so;else DATA[k].so=true;dirty();drawK()};
 $("kadd").onclick=function(){var k=$("ps").value,l=$("kl").value.trim(),p=parseInt($("kp").value,10),n=DEa.get();
@@ -348,7 +344,7 @@ $("nadd").onclick=function(){var n=$("np").value.trim();if(!n||DATA[n]){$("smsg"
   DATA[n]=o;NIMG="";$("nil").textContent="Ketuk untuk pilih gambar produk";$("np").value="";$("ni").value="";$("nd").value="";$("ndl").value="";$("nso").checked=false;dirty();drawP();$("ps").value=n;drawK();fillD()};
 
 var GIMG="";
-$("gif").onchange=async function(){var f=this.files[0];if(!f)return;try{GIMG=await prep(f,160,true,0.82);$("gil").textContent="Foto dipilih (ketuk untuk ganti)"}catch(e){}};
+$("gif").onchange=async function(){var f=this.files[0];if(!f)return;try{GIMG=await prep(f,160,true,0.7);$("gil").textContent="Foto dipilih (ketuk untuk ganti)"}catch(e){$("smsg").textContent="Foto gagal dibaca. Coba foto JPG/PNG lain."}};
 function drawW(){var n=DATA.__wa||"6289531234899";$("waa").value=n;$("wam").textContent="Nomor aktif: +"+n}
 $("waas").onclick=function(){var d=$("waa").value.replace(/\D/g,"");if(d.charAt(0)==="0")d="62"+d.slice(1);else if(d.charAt(0)==="8")d="62"+d;
   if(d.length<10||d.length>15){$("wam").textContent="Nomor belum benar.";return}DATA.__wa=d;dirty();drawW()};
@@ -382,9 +378,7 @@ function mkDE(box){var d=mk("input"),rows=mk("div"),ad=mk("button","+ Tambah poi
     set:function(str){rows.innerHTML="";var L=String(str||"").split("\n").map(function(x){return x.trim()}).filter(Boolean);d.value=L.length?L[0].replace(/^!\s*/,""):"";L.slice(1).forEach(function(t){row(t.replace(/^!\s*/,""),/^!/.test(t))});if(L.length<2){row("",false);row("",false)}}}}
 var DEa=mkDE($("dEa")),DEb=mkDE($("dEb"));DEa.set("");
 function drawT(){var q=$("qpv"),l=$("lpv");q.hidden=!DATA.__qris;if(DATA.__qris)q.src=DATA.__qris;$("qmsg").textContent=DATA.__qris?"QRIS kustom aktif.":"Memakai QRIS bawaan.";
-  l.hidden=!DATA.__logo;if(DATA.__logo)l.src=DATA.__logo;$("bpv").hidden=!DATA.__banner;if(DATA.__banner)$("bpv").src=DATA.__banner;$("clr").value=DATA.__color||"#46bfff";$("clb").value=DATA.__bg||"#050506"}
-$("bif").onchange=async function(){var f=this.files[0];if(!f)return;try{DATA.__banner=await prep(f,1000,false,0.75);$("bil").textContent="Banner dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto banner gagal dibaca."}};
-$("brst").onclick=function(){delete DATA.__banner;dirty();drawT()};
+  l.hidden=!DATA.__logo;if(DATA.__logo)l.src=DATA.__logo;$("clr").value=DATA.__color||"#46bfff";$("clb").value=DATA.__bg||"#050506"}
 $("qif").onchange=async function(){var f=this.files[0];if(!f)return;try{var d,qs=[0.85,0.72,0.58];for(var i=0;i<qs.length;i++){d=await prep(f,1000,false,qs[i]);if(d.length<230000)break}DATA.__qris=d;$("qil").textContent="QRIS dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto QRIS gagal dibaca."}};
 $("qrst").onclick=function(){delete DATA.__qris;dirty();drawT()};
 $("lif").onchange=async function(){var f=this.files[0];if(!f)return;try{DATA.__logo=await prep(f,320,true,0.85);$("lil").textContent="Logo dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto logo gagal dibaca."}};
@@ -394,18 +388,22 @@ $("crst").onclick=function(){delete DATA.__color;delete DATA.__bg;dirty();drawT(
 [["Biru","#46bfff"],["Hijau","#4ade80"],["Ungu","#a78bfa"],["Merah","#ff5c6c"],["Oranye","#ffa733"],["Pink","#ff7ac8"]].forEach(function(c){var b=mk("button",c[0]);b.style.cssText="padding:8px 14px;border-radius:999px;border:2px solid "+c[1]+";background:none;color:"+c[1]+";font:700 13px inherit;cursor:pointer";b.onclick=function(){DATA.__color=c[1];$("clr").value=c[1];dirty()};$("swa").appendChild(b)});
 async function vidUp(file,el,done){
   if(file.size>100*1024*1024){el.textContent="Video terlalu besar (maks 100 MB).";return}
-  var CS=524288,n=Math.ceil(file.size/CS),id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  var CS=524288,n=Math.ceil(file.size/CS),id=Date.now().toString(36)+Math.random().toString(36).slice(2,6),why="";
   try{for(var i=0;i<n;i++){
       el.textContent="Mengunggah... "+Math.round(i/n*100)+"% (jangan tutup halaman)";
       var buf=new Uint8Array(await file.slice(i*CS,(i+1)*CS).arrayBuffer()),bin="";for(var k=0;k<buf.length;k+=8192)bin+=String.fromCharCode.apply(null,buf.subarray(k,k+8192));
       var data=btoa(bin),ok=false;
-      for(var t=0;t<3&&!ok;t++){var r=await api("/api/video?op=chunk&id="+id+"&n="+i,{method:"POST",body:JSON.stringify({data:data})});
-        if(r.status===401){el.textContent="Password salah. Keluar lalu masuk lagi.";return}ok=r.ok}
-      if(!ok)throw 0}
+      for(var t=0;t<4&&!ok;t++){
+        try{var r=await api("/api/video?op=chunk&id="+id+"&n="+i,{method:"POST",body:JSON.stringify({data:data})});
+          if(r.status===401){el.textContent="Password salah. Keluar lalu masuk lagi.";return}
+          ok=r.ok;if(!ok){var tx="";try{tx=(await r.text()).slice(0,80)}catch(e){}why="kode "+r.status+(tx?" - "+tx:"")}}
+        catch(e){why="koneksi putus"}
+        if(!ok)await new Promise(function(z){setTimeout(z,800*(t+1))})}
+      if(!ok){el.textContent="Gagal mengunggah di "+Math.round(i/n*100)+"% ("+why+"). Coba lagi, atau pakai link video.";return}}
     var r2=await api("/api/video?op=done&id="+id,{method:"POST",body:JSON.stringify({size:file.size,type:file.type||"video/mp4",chunks:n,cs:CS})});
-    if(!r2.ok)throw 0;
+    if(!r2.ok){var t2="";try{t2=(await r2.text()).slice(0,80)}catch(e){}el.textContent="Gagal menyelesaikan upload (kode "+r2.status+(t2?" - "+t2:"")+"). Coba lagi, atau pakai link video.";return}
     el.textContent="✓ Video terupload ("+Math.round(file.size/1024/1024*10)/10+" MB). Jangan lupa Simpan semua perubahan.";done("/api/video?id="+id)
-  }catch(e){el.textContent="Gagal mengunggah. Cek internet lalu coba lagi."}}
+  }catch(e){el.textContent="Gagal mengunggah: "+((e&&e.message)||"cek internet")+". Coba lagi, atau pakai link video."}}
 $("vup").onchange=function(){var f=this.files[0];this.value="";if(f)vidUp(f,$("vum"),function(p){$("vin").value=p;$("vsv").click()})};
 $("kvup").onchange=function(){var f=this.files[0];this.value="";if(f)vidUp(f,$("kvm"),function(p){$("kv").value=p})};
 function gl(){return DATA.__groups||(DATA.__groups=[])}
@@ -439,7 +437,14 @@ $("save").onclick=async function(){var m=$("smsg");m.textContent="Menyimpan...";
   try{var r=await api("/api/data",{method:"POST",body:JSON.stringify({DATA:DATA})});
     if(r.status===401){m.textContent="Password salah. Keluar lalu masuk lagi.";return}
     if(r.status===413){m.textContent="Data terlalu besar. Hapus beberapa foto atau akun lama.";return}
-    if(!r.ok)throw 0;m.textContent="Tersimpan! Sudah tampil di web."}catch(e){m.textContent="Gagal menyimpan."}};
+    if(!r.ok){m.textContent="Gagal menyimpan (kode "+r.status+").";return}m.textContent="Tersimpan! Sudah tampil di web."}catch(e){m.textContent="Gagal menyimpan. Cek internet."}};
+function toImg(src){return new Promise(function(ok,no){var im=new Image();im.onload=function(){ok(im)};im.onerror=no;im.src=src})}
+async function recomp(src,max,q){var im=await toImg(src),c=document.createElement("canvas"),k=Math.min(1,max/Math.max(im.width,im.height));c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);return c.toDataURL("image/jpeg",q)}
+$("shr").onclick=async function(){if(!DATA)return;var m=$("smsg"),b=JSON.stringify(DATA).length,n=0;m.textContent="Mengecilkan foto...";
+  async function fix(o,key,max,q){var v=o[key];if(typeof v==="string"&&v.indexOf("data:image")===0&&v.length>20000){try{var d=await recomp(v,max,q);if(d.length<v.length){o[key]=d;n++}}catch(e){}}}
+  for(var k of PK()){await fix(DATA[k],"img",200,0.65);for(var it of DATA[k].p)await fix(it,3,420,0.6)}
+  for(var g of gl())await fix(g,"img",200,0.65);
+  var a=JSON.stringify(DATA).length;m.textContent=n?"Selesai: "+n+" foto dikecilkan ("+Math.round(b/1024)+" KB jadi "+Math.round(a/1024)+" KB). Tekan Simpan semua perubahan.":"Foto sudah cukup kecil ("+Math.round(b/1024)+" KB)."};
 if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(function(){});
 </script>
 </body>
