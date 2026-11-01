@@ -216,6 +216,25 @@ nav #nHome.on{background:linear-gradient(135deg,var(--g1),var(--g2))}
 /* ===== marquee berurutan: mulai dari Welcome ===== */
 .mt{padding-left:100%;animation:mq 25s linear infinite}
 @keyframes mq{to{transform:translateX(-100%)}}
+
+/* ===== KARTU PAKET (gaya RoxyJoki) ===== */
+.opt{display:block;padding:18px;margin-bottom:14px;border-radius:22px}
+.opt span{display:block}
+.opt .pim{display:block;width:100%;max-height:170px;object-fit:cover;border-radius:16px;margin-bottom:14px}
+.opt span.pb{display:inline-block;padding:9px 16px;border-radius:999px;background:#14284a;border:1px solid #2a4a80;color:#e6f1ff;font-weight:700;font-size:17px;letter-spacing:.5px}
+.opt span.pt{margin:16px 0 8px;font-weight:700;font-size:26px;line-height:1.2}
+.opt span.pd{margin:0 0 12px;color:var(--mut);font-weight:500;font-size:16px;line-height:1.4}
+.opt span.pn{margin:0 0 10px;color:#ffb020;font-weight:700;font-size:14px}
+.opt span.pc{display:flex;align-items:center;gap:10px;margin:8px 0;font-weight:700;font-size:16px}
+.opt .pc svg{width:24px;height:24px;flex:none;color:var(--acc)}
+.opt span.pp{margin:22px 0 14px;margin-left:0;color:var(--acc);font-weight:700;font-size:36px;line-height:1.1;white-space:normal}
+.opt span.pp s{color:#9a9aa6;font-weight:400;font-size:16px}
+.opt span.pg{margin-left:0;padding:16px;border-radius:999px;background:linear-gradient(135deg,var(--g1),var(--g2));color:#0c1d12;text-align:center;font-weight:700;font-size:18px;white-space:normal}
+.opt.so{opacity:.7}.opt.so span.pg{background:#2a2a30;color:#ff6b72}
+/* bubble Halo */
+#aiH{position:fixed;right:86px;bottom:calc(112px + env(safe-area-inset-bottom,0px));padding:10px 16px;border-radius:16px 16px 4px 16px;background:#14284a;border:1px solid #2a4a80;color:#fff;font-weight:700;z-index:7;cursor:pointer;box-shadow:0 6px 18px #0008}
+#aiH[hidden]{display:none}
+nav a,nav button{white-space:nowrap;font-size:13px}
 </style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap">
@@ -393,11 +412,21 @@ var CUST=null,BK="s1",JL=[],JPH="";
 function openCat(k){CUST=null;BK="s1";
   cat=k;sel=null;$("catName").textContent=k;$("catDesc").textContent=DATA[k].dl||"";$("qtyBox").classList.add("hide");$("opts").innerHTML="";
   if(!DATA[k].p.length){var em=document.createElement("div");em.className="sum";em.textContent="Belum ada akun tersedia. Cek lagi nanti atau hubungi admin.";$("opts").appendChild(em)}
+  var CK='<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg>';
   DATA[k].p.forEach(function(it,i){
-    var b=document.createElement("button");b.className="opt";
-    var e=ep(k,it);b.innerHTML="<span></span><span>"+(e.pct?"<s style='color:#9a9aa6;font-weight:400;font-size:12px'>"+rp(e.orig)+"</s> ":"")+rp(e.price)+(e.pct?" <em class='dsc'>-"+e.pct+"%</em>":"")+"</span>";b.firstChild.textContent=it[0];if((DATA[k].sp||[]).indexOf(it[0])>-1){b.classList.add("so");b.lastChild.textContent="SOLD OUT"}if(it[2]){var sm=document.createElement("small");sm.textContent=it[2];sm.style.cssText="display:block;color:#ffb020;font-size:13px;margin-top:2px";b.firstChild.appendChild(sm)}if(it[3]){var th=document.createElement("img");th.src=it[3];th.alt="";th.style.cssText="width:56px;height:56px;border-radius:10px;object-fit:cover;margin-right:10px;float:left";b.firstChild.style.display="block";b.firstChild.insertBefore(th,b.firstChild.firstChild)}
-    b.onclick=function(){if((DATA[k].sp||[]).indexOf(it[0])>-1){toast("Paket ini SOLD OUT");return}sel=i;[].forEach.call($("opts").children,function(c){c.classList.remove("on")});
-      b.classList.add("on");$("qtyBox").classList.remove("hide");calc();$("qty").focus()};
+    var b=document.createElement("button");b.className="opt";var e=ep(k,it),sold=(DATA[k].sp||[]).indexOf(it[0])>-1;
+    b.innerHTML='<span class="pb"></span><span class="pt"></span><span class="pd"></span><span class="pn"></span><span class="pc">'+CK+'Order langsung dari website</span><span class="pc">'+CK+'Status dapat dipantau</span><span class="pp"></span><span class="pg"></span>';
+    var q=function(c){return b.querySelector("."+c)};
+    q("pb").textContent=String(it[0]).toUpperCase();q("pt").textContent=k;
+    if(DATA[k].d)q("pd").textContent=DATA[k].d;else q("pd").style.display="none";
+    if(it[2])q("pn").textContent=it[2];else q("pn").style.display="none";
+    var pp=q("pp");if(e.pct){var s1=document.createElement("s");s1.textContent=rp(e.orig);pp.appendChild(s1);pp.appendChild(document.createTextNode(" "))}
+    pp.appendChild(document.createTextNode(rp(e.price)));if(e.pct){var em=document.createElement("em");em.className="dsc";em.textContent="-"+e.pct+"%";pp.appendChild(document.createTextNode(" "));pp.appendChild(em)}
+    if(it[3]){var th=document.createElement("img");th.className="pim";th.src=it[3];th.alt="";b.insertBefore(th,b.firstChild)}
+    q("pg").textContent=sold?"SOLD OUT":"Pesan Paket";if(sold)b.classList.add("so");
+    b.onclick=function(){if(sold){toast("Paket ini SOLD OUT");return}sel=i;
+      [].forEach.call($("opts").children,function(c){c.classList.remove("on");var g=c.querySelector&&c.querySelector(".pg");if(g&&!c.classList.contains("so"))g.textContent="Pesan Paket"});
+      b.classList.add("on");q("pg").textContent="Dipilih ✓";$("qtyBox").classList.remove("hide");calc();$("qtyBox").scrollIntoView({behavior:"smooth",block:"center"});$("qty").focus({preventScroll:true})};
     $("opts").appendChild(b)});
   view("s1")}
 function qty(){var n=parseInt($("qty").value,10);return n>0?n:0}
@@ -560,4 +589,10 @@ function applyCfg(){var D=window.DATA||{},hex=/^#[0-9a-f]{3,8}$/i;
   var st=document.getElementById("cfgst");if(!st){st=document.createElement("style");st.id="cfgst";document.head.appendChild(st)}
   var c="";if(hex.test(D.__color||""))c+=":root{--acc:"+D.__color+"}";if(hex.test(D.__bg||""))c+="html{background:"+D.__bg+"}body{background:"+D.__bg+"!important}";
   st.textContent=c}
+
+if("serviceWorker" in navigator){navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){r.unregister()})}).catch(function(){});if(window.caches)caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k)})}).catch(function(){})}
+
+(function(){var B=$("aiB");if(!B)return;var H=document.createElement("div");H.id="aiH";H.textContent="Halo 👋";H.hidden=true;document.body.appendChild(H);
+  H.onclick=function(){H.hidden=true;B.click()};B.addEventListener("click",function(){H.hidden=true});
+  setTimeout(function(){if(!B.hidden)H.hidden=false},1500);setTimeout(function(){H.hidden=true},9000)})();
 </script></body></html>
