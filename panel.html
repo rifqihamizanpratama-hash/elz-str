@@ -209,7 +209,7 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <textarea id="inf" rows="6" placeholder="mis. ELZ STR menyediakan barang dan jasa: ..."></textarea>
       <button class="btn g" id="infs">Terapkan info</button></div>
     <div class="panel"><b>Pesan berjalan</b>
-      <div class="msg">Selain pesan buatanmu, web otomatis menampilkan diskon yang aktif dan pesanan terbaru (contoh: "Da*** 1 menit lalu telah memesan OTAX").</div>
+      <div class="msg">Pesan buatanmu (mis. Welcome) tampil paling depan, lalu pesanan terbaru (contoh: "Da*** 1 menit lalu telah memesan OTAX"). Pesanan lebih dari 1 hari tidak ditampilkan.</div>
       <div id="tkl"></div>
       <input type="text" id="tkn" placeholder="Tulis pesan berjalan..." style="margin-top:8px">
       <button class="btn" id="tka">Tambah pesan</button></div>
@@ -426,7 +426,9 @@ $("aba").onclick=function(){var n=$("abn").value.trim(),u=$("abu").value.trim();
   var o={c:$("abc").value,n:n,u:u},d=$("abd").value.trim();if(d)o.d=d;if(ABI)o.img=ABI;if(ABE>=0&&al()[ABE])al()[ABE]=o;else al().push(o);abReset();dirty();drawAb()};
 $("abx").onclick=abReset;
 function gl(){return DATA.__groups||(DATA.__groups=[])}
-function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");r.appendChild(mk("span",(G.img?"🖼 ":(G.ic||"📁")+" ")+G.n+" — "+n+" produk"));
+function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");var lb=mk("span",null);lb.style.cssText="display:flex;align-items:center;gap:8px;min-width:0";
+  if(G.img){var im=mk("img");im.src=G.img;im.style.cssText="width:38px;height:38px;border-radius:10px;object-fit:cover;flex:none";lb.appendChild(im)}else lb.appendChild(mk("span",G.ic||"📁"));
+  lb.appendChild(mk("span",G.n+" — "+n+" produk"));r.appendChild(lb);
   var x=mk("button","Hapus");x.onclick=function(){PK().forEach(function(k){if(DATA[k].g===G.n)delete DATA[k].g});gl().splice(i,1);dirty();drawG()};var ft=mk("button",G.img?"Ganti foto":"Foto");ft.onclick=function(){GT=G;var f=$("gfi");f.value="";f.click()};var bb=mk("div");bb.style.cssText="display:flex;gap:6px";bb.appendChild(ft);bb.appendChild(x);r.appendChild(bb);b.appendChild(r)});
   if(!gl().length)b.appendChild(mk("div","Belum ada kelompok.","msg"));
   var sg=$("gsel"),sp=$("gps");sg.innerHTML="";sp.innerHTML="";var o0=mk("option","(tanpa kelompok)");o0.value="";sg.appendChild(o0);gl().forEach(function(G){var o=mk("option",G.n);o.value=G.n;sg.appendChild(o)});
