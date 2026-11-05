@@ -72,6 +72,8 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
 .cw{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px;border:2px solid var(--line);border-radius:20px;background:linear-gradient(160deg,#101013,#0a0a0c);margin-top:10px;cursor:pointer;width:100%;text-align:left;color:var(--ink);font:inherit}
 .cw b{display:block}.cw span{font-size:13px;color:var(--mut)}.cw i{font-style:normal;background:#ff3b45;color:#fff;border-radius:999px;padding:2px 9px;font:800 12px Arial,sans-serif}
 
+#mtbar{position:sticky;top:0;z-index:90;margin:0 0 10px;padding:10px 12px;border-radius:14px;background:#ff4d3d;color:#fff;font-weight:700;text-align:center}
+#mtbar[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -95,6 +97,7 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
   </div>
   <div class="tabs"><button id="t1" class="on">Pesanan</button><button id="t2">Produk &amp; akun</button><button id="t3">Kelompok</button><button id="t4">Diskon</button><button id="t5">Pendapatan</button><button id="t6">Tentang</button><button id="t7">Info &amp; Pesan</button><button id="t8">CS</button><button id="t9">Tampilan</button></div>
 
+  <div id="mtbar" hidden>🛠 MAINTENANCE AKTIF — web tertutup untuk pengunjung</div>
   <section id="s1">
     <div class="srch"><i>🔍</i><input type="search" id="q" placeholder="Cari ID pesanan / nama..."></div>
     <div id="ol"></div>
@@ -225,6 +228,11 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
     </div>
   </section>
   <section id="s9" class="hide">
+    <div class="panel"><b>Cek sistem</b>
+      <div class="msg">Cek apakah file terbaru sudah terpasang di hosting dan notifikasi siap.</div>
+      <button class="btn" id="chk">Jalankan cek</button>
+      <button class="btn g" id="beept">Tes bunyi notifikasi</button>
+      <div id="chkr"></div></div>
     <div class="panel"><b>Pembayaran otomatis (HP)</b>
       <div class="msg">Alamat untuk MacroDroid: <b id="payurl"></b></div>
       <div class="msg">Header: x-admin-pw = password admin. Body JSON: {"text":"isi notifikasi"}</div>
@@ -521,6 +529,21 @@ function ordPoll(){if($("app").classList.contains("hide"))return;
       if(!$("s1").classList.contains("hide"))load()}
     LSIG=sig;LIDS=ids}).catch(function(){})}
 setInterval(ordPoll,5000);setTimeout(ordPoll,1500);
+function unlockAudio(){try{ACX=ACX||new (window.AudioContext||window.webkitAudioContext)();if(ACX.state==="suspended")ACX.resume()}catch(e){}}
+document.addEventListener("pointerdown",unlockAudio);
+function mtPoll(){if($("app").classList.contains("hide"))return;fetch("/api/data?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.status===200?r.json():null}).then(function(j){var m=j&&j.DATA&&j.DATA.__maint;$("mtbar").hidden=!(m&&m.on)}).catch(function(){})}
+setInterval(mtPoll,30000);setTimeout(mtPoll,1500);
+$("beept").onclick=function(){unlockAudio();beep();flash("🔔 Tes bunyi notifikasi",false)};
+$("chk").onclick=async function(){var o=$("chkr");o.innerHTML="Memeriksa...";var rows=[];function row(ok,t){rows.push([ok,t])}
+  async function st(u){try{return(await fetch(u,{cache:"no-store"})).status}catch(e){return 0}}
+  try{var h=await(await fetch("/?v="+Date.now(),{cache:"no-store"})).text();row(h.indexOf("applyMaint")>-1&&h.indexOf("payCheck")>-1,"index.html di hosting sudah versi terbaru (maintenance + bayar otomatis)")}catch(e){row(false,"index.html tidak bisa dibaca")}
+  var a=await st("/api/pay?id=x");row(a===400,"api/pay.js terpasang"+(a===400?"":" (kode "+a+")"));
+  a=await st("/api/chat?cid=x");row(a===400,"api/chat.js terpasang"+(a===400?"":" (kode "+a+")"));
+  a=await st("/api/img?id=");row(a===400,"api/img.js terpasang"+(a===400?"":" (kode "+a+")"));
+  try{var r=await fetch("/api/orders?view=queue",{cache:"no-store"}),j=await r.json(),ok=r.ok&&Array.isArray(j.queue);row(ok,"antrian pesanan terbaca (untuk notifikasi pesanan baru)"+(ok?"":" (kode "+r.status+")"))}catch(e){row(false,"antrian pesanan gagal dibaca")}
+  try{var r2=await fetch("/api/data?v="+Date.now(),{cache:"no-store"}),j2=r2.status===200?await r2.json():null,m=j2&&j2.DATA&&j2.DATA.__maint;row(r2.status===200||r2.status===204,"data toko terbaca dari server");row(true,"Maintenance di server: "+(m&&m.on?"NYALA":"MATI"))}catch(e){row(false,"data toko gagal dibaca")}
+  row(!!ACX&&ACX.state==="running","Bunyi notifikasi aktif"+((ACX&&ACX.state==="running")?"":" (ketuk Tes bunyi notifikasi dulu)"));
+  o.innerHTML="";rows.forEach(function(x){o.appendChild(mk("div",(x[0]?"✅ ":"❌ ")+x[1],"msg"))})};
 function flash(t,bad){var f=$("flash");if(!f){f=document.createElement("div");f.id="flash";f.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:99;padding:14px 16px;border-radius:16px;font-weight:700;text-align:center;box-shadow:0 8px 30px #000a;border:2px solid #3cb4ff;background:#16161a;color:#fff";document.body.appendChild(f)}
   f.textContent=t;f.style.borderColor=bad?"#ff5c6c":"#3cb4ff";f.hidden=false;clearTimeout(f._t);f._t=setTimeout(function(){f.hidden=true},8000)}
 new MutationObserver(function(){var t=$("smsg").textContent;if(t&&!/^(Menyimpan|Memeriksa|Tersimpan\. Memeriksa)/.test(t))flash(t,/gagal|salah|besar|⚠|isi /i.test(t))}).observe($("smsg"),{childList:true,characterData:true,subtree:true});
