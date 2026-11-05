@@ -230,6 +230,10 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <div class="msg" id="qmsg"></div>
       <label class="up" for="qif" id="qil">Ganti foto QRIS</label><input type="file" id="qif" class="vh" accept="image/*">
       <button class="btn g" id="qrst">Pakai QRIS bawaan</button>
+      <label for="qrs" style="margin-top:10px">Teks QRIS (supaya nominal terisi otomatis di QR)</label>
+      <input type="text" id="qrs" placeholder="0002010102...">
+      <button class="btn g" id="qrsb">Terapkan teks QRIS</button>
+      <div class="msg" id="qrsm"></div>
       <div class="msg">Foto QRIS dikecilkan otomatis tapi tetap jelas untuk discan. Pakai foto yang QR-nya terlihat penuh.</div></div>
     <div class="panel"><b>Logo / foto profil web</b>
       <img id="lpv" class="pp" alt="" hidden style="margin:8px 0">
@@ -381,7 +385,7 @@ function mkDE(box){var d=mk("input"),rows=mk("div"),ad=mk("button","+ Tambah poi
     set:function(str){rows.innerHTML="";var L=String(str||"").split("\n").map(function(x){return x.trim()}).filter(Boolean);d.value=L.length?L[0].replace(/^!\s*/,""):"";L.slice(1).forEach(function(t){row(t.replace(/^!\s*/,""),/^!/.test(t))});if(L.length<2){row("",false);row("",false)}}}}
 var DEa=mkDE($("dEa")),DEb=mkDE($("dEb"));DEa.set("");
 function drawT(){var q=$("qpv"),l=$("lpv");q.hidden=!DATA.__qris;if(DATA.__qris)q.src=DATA.__qris;$("qmsg").textContent=DATA.__qris?"QRIS kustom aktif.":"Memakai QRIS bawaan.";
-  l.hidden=!DATA.__logo;if(DATA.__logo)l.src=DATA.__logo;$("clr").value=DATA.__color||"#46bfff";$("clb").value=DATA.__bg||"#050506"}
+  l.hidden=!DATA.__logo;if(DATA.__logo)l.src=DATA.__logo;$("clr").value=DATA.__color||"#46bfff";$("clb").value=DATA.__bg||"#050506";$("qrs").value=DATA.__qrisStr||""}
 $("qif").onchange=async function(){var f=this.files[0];if(!f)return;try{var d,qs=[0.85,0.72,0.58];for(var i=0;i<qs.length;i++){d=await prep(f,1000,false,qs[i]);if(d.length<230000)break}DATA.__qris=d;$("qil").textContent="QRIS dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto QRIS gagal dibaca."}};
 $("qrst").onclick=function(){delete DATA.__qris;dirty();drawT()};
 $("lif").onchange=async function(){var f=this.files[0];if(!f)return;try{DATA.__logo=await prep(f,320,true,0.85);$("lil").textContent="Logo dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto logo gagal dibaca."}};
@@ -425,6 +429,16 @@ $("abf").onchange=async function(){var f=this.files[0];if(!f)return;try{ABI=awai
 $("aba").onclick=function(){var n=$("abn").value.trim(),u=$("abu").value.trim();if(!n||!u){$("smsg").textContent="Isi nama dan link atau nomor dulu.";return}
   var o={c:$("abc").value,n:n,u:u},d=$("abd").value.trim();if(d)o.d=d;if(ABI)o.img=ABI;if(ABE>=0&&al()[ABE])al()[ABE]=o;else al().push(o);abReset();dirty();drawAb()};
 $("abx").onclick=abReset;
+function qrCrc(s){var c=0xFFFF;for(var i=0;i<s.length;i++){c^=s.charCodeAt(i)<<8;for(var j=0;j<8;j++)c=(c&0x8000)?((c<<1)^0x1021):(c<<1);c&=0xFFFF}return("0000"+c.toString(16).toUpperCase()).slice(-4)}
+function qrisOk(s){s=String(s||"").trim();return s.length>40&&s.slice(0,6)==="000201"&&s.slice(-8,-4)==="6304"&&qrCrc(s.slice(0,-4))===s.slice(-4)}
+async function qrDecode(f){try{if(!("BarcodeDetector" in window))return"";var bd=new BarcodeDetector({formats:["qr_code"]}),bm=await createImageBitmap(f),r=await bd.detect(bm);return r[0]?r[0].rawValue:""}catch(e){return""}}
+$("qrsb").onclick=function(){var v=$("qrs").value.trim();if(!v){delete DATA.__qrisStr;$("qrsm").textContent="Teks QRIS dikosongkan. Web memakai QRIS bawaan (atau foto QRIS yang diupload).";dirty();return}
+  if(!qrisOk(v)){$("qrsm").textContent="Teks QRIS tidak valid. Salin utuh dari awal (000201...) sampai akhir.";return}
+  DATA.__qrisStr=v;$("qrsm").textContent="Teks QRIS valid. QR di web sekarang otomatis berisi nominal pesanan. Tekan Simpan semua perubahan.";dirty()};
+$("qif").addEventListener("change",async function(){var f=this.files[0];if(!f||!DATA)return;var v=await qrDecode(f);
+  if(v&&qrisOk(v)){DATA.__qrisStr=v;$("qrs").value=v;$("qrsm").textContent="Teks QRIS terbaca otomatis dari foto. Nominal akan terisi otomatis di QR web."}
+  else{delete DATA.__qrisStr;$("qrs").value="";$("qrsm").textContent="Teks QRIS belum terbaca dari foto. Web memakai foto QRIS biasa. Tempel teks QRIS di atas supaya nominal terisi otomatis."}dirty()});
+$("qrst").addEventListener("click",function(){delete DATA.__qrisStr;$("qrs").value="";$("qrsm").textContent="";dirty()});
 function gl(){return DATA.__groups||(DATA.__groups=[])}
 function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");var lb=mk("span",null);lb.style.cssText="display:flex;align-items:center;gap:8px;min-width:0";
   if(G.img){var im=mk("img");im.src=G.img;im.style.cssText="width:38px;height:38px;border-radius:10px;object-fit:cover;flex:none";lb.appendChild(im)}else lb.appendChild(mk("span",G.ic||"📁"));
