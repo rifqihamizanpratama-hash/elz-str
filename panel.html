@@ -225,6 +225,19 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
     </div>
   </section>
   <section id="s9" class="hide">
+    <div class="panel"><b>Pembayaran otomatis (HP)</b>
+      <div class="msg">Alamat untuk MacroDroid: <b id="payurl"></b></div>
+      <div class="msg">Header: x-admin-pw = password admin. Body JSON: {"text":"isi notifikasi"}</div>
+      <input type="text" id="payt" placeholder="Tes: nominal yang ditunggu, mis. 5001" inputmode="numeric">
+      <button class="btn g" id="payb">Kirim tes notifikasi</button>
+      <div class="msg" id="paym"></div></div>
+    <div class="panel"><b>Mode maintenance</b>
+      <div class="msg" id="mtst"></div>
+      <button class="btn" id="mtb">Nyalakan maintenance</button>
+      <label for="mtm" style="margin-top:10px">Pesan untuk pengunjung (opsional)</label>
+      <textarea id="mtm" rows="3" placeholder="mis. Sedang perbaikan, kembali jam 20.00"></textarea>
+      <button class="btn g" id="mtmb">Terapkan pesan</button>
+      <div class="msg">Saat nyala, pengunjung web melihat halaman maintenance dan tidak bisa order. Tekan Simpan semua perubahan supaya berlaku.</div></div>
     <div class="panel"><b>QRIS pembayaran</b>
       <img id="qpv" class="proof" alt="" hidden style="max-width:240px">
       <div class="msg" id="qmsg"></div>
@@ -385,7 +398,7 @@ function mkDE(box){var d=mk("input"),rows=mk("div"),ad=mk("button","+ Tambah poi
     set:function(str){rows.innerHTML="";var L=String(str||"").split("\n").map(function(x){return x.trim()}).filter(Boolean);d.value=L.length?L[0].replace(/^!\s*/,""):"";L.slice(1).forEach(function(t){row(t.replace(/^!\s*/,""),/^!/.test(t))});if(L.length<2){row("",false);row("",false)}}}}
 var DEa=mkDE($("dEa")),DEb=mkDE($("dEb"));DEa.set("");
 function drawT(){var q=$("qpv"),l=$("lpv");q.hidden=!DATA.__qris;if(DATA.__qris)q.src=DATA.__qris;$("qmsg").textContent=DATA.__qris?"QRIS kustom aktif.":"Memakai QRIS bawaan.";
-  l.hidden=!DATA.__logo;if(DATA.__logo)l.src=DATA.__logo;$("clr").value=DATA.__color||"#46bfff";$("clb").value=DATA.__bg||"#050506";$("qrs").value=DATA.__qrisStr||""}
+  l.hidden=!DATA.__logo;if(DATA.__logo)l.src=DATA.__logo;$("clr").value=DATA.__color||"#46bfff";$("clb").value=DATA.__bg||"#050506";$("qrs").value=DATA.__qrisStr||"";mtDraw()}
 $("qif").onchange=async function(){var f=this.files[0];if(!f)return;try{var d,qs=[0.85,0.72,0.58];for(var i=0;i<qs.length;i++){d=await prep(f,1000,false,qs[i]);if(d.length<230000)break}DATA.__qris=d;$("qil").textContent="QRIS dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto QRIS gagal dibaca."}};
 $("qrst").onclick=function(){delete DATA.__qris;dirty();drawT()};
 $("lif").onchange=async function(){var f=this.files[0];if(!f)return;try{DATA.__logo=await prep(f,320,true,0.85);$("lil").textContent="Logo dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto logo gagal dibaca."}};
@@ -439,6 +452,14 @@ $("qif").addEventListener("change",async function(){var f=this.files[0];if(!f||!
   if(v&&qrisOk(v)){DATA.__qrisStr=v;$("qrs").value=v;$("qrsm").textContent="Teks QRIS terbaca otomatis dari foto. Nominal akan terisi otomatis di QR web."}
   else{delete DATA.__qrisStr;$("qrs").value="";$("qrsm").textContent="Teks QRIS belum terbaca dari foto. Web memakai foto QRIS biasa. Tempel teks QRIS di atas supaya nominal terisi otomatis."}dirty()});
 $("qrst").addEventListener("click",function(){delete DATA.__qrisStr;$("qrs").value="";$("qrsm").textContent="";dirty()});
+function mtDraw(){var m=DATA.__maint||{};$("mtst").textContent=m.on?"Status: NYALA (web tertutup untuk pengunjung)":"Status: MATI (web normal)";$("mtb").textContent=m.on?"Matikan maintenance":"Nyalakan maintenance";$("mtm").value=m.msg||""}
+$("mtb").onclick=function(){var m=DATA.__maint||(DATA.__maint={});m.on=!m.on;dirty();mtDraw()};
+$("mtmb").onclick=function(){var m=DATA.__maint||(DATA.__maint={}),v=$("mtm").value.trim();if(v)m.msg=v;else delete m.msg;dirty();$("smsg").textContent="Pesan maintenance diterapkan. Tekan Simpan semua perubahan."};
+$("payurl").textContent=location.origin+"/api/pay?op=notif";
+$("payb").onclick=async function(){var n=$("payt").value.replace(/\D/g,"");if(!n){$("paym").textContent="Isi nominal dulu.";return}
+  try{var r=await api("/api/pay?op=notif",{method:"POST",body:JSON.stringify({text:"Kamu menerima Rp"+n})}),j=await r.json();
+    $("paym").textContent=r.status===401?"Password salah.":!r.ok?"Gagal (kode "+r.status+"). Pastikan api/pay.js sudah dipasang.":j.matched?"Cocok! Ada pembeli yang menunggu nominal itu, sudah ditandai lunas.":"Server menerima, tapi tidak ada pembeli yang menunggu nominal itu."}
+  catch(e){$("paym").textContent="Gagal terhubung. Cek internet."}};
 function gl(){return DATA.__groups||(DATA.__groups=[])}
 function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");var lb=mk("span",null);lb.style.cssText="display:flex;align-items:center;gap:8px;min-width:0";
   if(G.img){var im=mk("img");im.src=G.img;im.style.cssText="width:38px;height:38px;border-radius:10px;object-fit:cover;flex:none";lb.appendChild(im)}else lb.appendChild(mk("span",G.ic||"📁"));
@@ -488,6 +509,18 @@ $("shr").onclick=async function(){if(!DATA)return;var m=$("smsg"),b=JSON.stringi
   for(var k of PK()){await fix(DATA[k],"img",200,0.65);for(var it of DATA[k].p)await fix(it,3,420,0.6)}
   for(var g of gl())await fix(g,"img",200,0.65);
   var a=JSON.stringify(DATA).length;m.textContent=n?"Selesai: "+n+" foto dikecilkan ("+Math.round(b/1024)+" KB jadi "+Math.round(a/1024)+" KB). Tekan Simpan semua perubahan.":"Foto sudah cukup kecil ("+Math.round(b/1024)+" KB)."};
+var ACX=null;
+function beep(){try{ACX=ACX||new (window.AudioContext||window.webkitAudioContext)();if(ACX.state==="suspended")ACX.resume();
+  [0,0.22,0.44].forEach(function(t){var o=ACX.createOscillator(),g=ACX.createGain();o.type="sine";o.frequency.value=880;g.gain.value=0.25;o.connect(g);g.connect(ACX.destination);o.start(ACX.currentTime+t);o.stop(ACX.currentTime+t+0.15)})}catch(e){}
+  try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
+var LSIG=null,LIDS=[];
+function ordPoll(){if($("app").classList.contains("hide"))return;
+  fetch("/api/orders?view=queue",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j||!Array.isArray(j.queue))return;
+    var ids=j.queue.map(function(o){return o.id}),sig=j.queue.map(function(o){return o.id+":"+o.status}).join("|");
+    if(LSIG!==null&&sig!==LSIG){if(ids.some(function(i){return LIDS.indexOf(i)<0})){beep();flash("🔔 Pesanan baru masuk!",false)}
+      if(!$("s1").classList.contains("hide"))load()}
+    LSIG=sig;LIDS=ids}).catch(function(){})}
+setInterval(ordPoll,5000);setTimeout(ordPoll,1500);
 function flash(t,bad){var f=$("flash");if(!f){f=document.createElement("div");f.id="flash";f.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:99;padding:14px 16px;border-radius:16px;font-weight:700;text-align:center;box-shadow:0 8px 30px #000a;border:2px solid #3cb4ff;background:#16161a;color:#fff";document.body.appendChild(f)}
   f.textContent=t;f.style.borderColor=bad?"#ff5c6c":"#3cb4ff";f.hidden=false;clearTimeout(f._t);f._t=setTimeout(function(){f.hidden=true},8000)}
 new MutationObserver(function(){var t=$("smsg").textContent;if(t&&!/^(Menyimpan|Memeriksa|Tersimpan\. Memeriksa)/.test(t))flash(t,/gagal|salah|besar|⚠|isi /i.test(t))}).observe($("smsg"),{childList:true,characterData:true,subtree:true});
