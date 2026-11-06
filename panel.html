@@ -540,6 +540,7 @@ $("chk").onclick=async function(){var o=$("chkr");o.innerHTML="Memeriksa...";var
   var a=await st("/api/pay?id=x");row(a===400,"api/pay.js terpasang"+(a===400?"":" (kode "+a+")"));
   a=await st("/api/chat?cid=x");row(a===400,"api/chat.js terpasang"+(a===400?"":" (kode "+a+")"));
   a=await st("/api/img?id=");row(a===400,"api/img.js terpasang"+(a===400?"":" (kode "+a+")"));
+  a=await st("/api/video?id=x");row(a===400,"api/video.js terpasang (untuk upload video)"+(a===400?"":" (kode "+a+")"));
   try{var r=await fetch("/api/orders?view=queue",{cache:"no-store"}),j=await r.json(),ok=r.ok&&Array.isArray(j.queue);row(ok,"antrian pesanan terbaca (untuk notifikasi pesanan baru)"+(ok?"":" (kode "+r.status+")"))}catch(e){row(false,"antrian pesanan gagal dibaca")}
   try{var r2=await fetch("/api/data?v="+Date.now(),{cache:"no-store"}),j2=r2.status===200?await r2.json():null,m=j2&&j2.DATA&&j2.DATA.__maint;row(r2.status===200||r2.status===204,"data toko terbaca dari server");row(true,"Maintenance di server: "+(m&&m.on?"NYALA":"MATI"))}catch(e){row(false,"data toko gagal dibaca")}
   row(!!ACX&&ACX.state==="running","Bunyi notifikasi aktif"+((ACX&&ACX.state==="running")?"":" (ketuk Tes bunyi notifikasi dulu)"));
