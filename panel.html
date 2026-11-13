@@ -95,8 +95,25 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
     <button class="stc" data-f="menunggu"><b class="y" id="sB">0</b><span>BELUM</span></button>
     <button class="stc" data-f="selesai"><b class="g" id="sS">0</b><span>SELESAI</span></button>
   </div>
-  <div class="tabs"><button id="t1" class="on">Pesanan</button><button id="t2">Produk &amp; akun</button><button id="t3">Kelompok</button><button id="t4">Diskon</button><button id="t5">Pendapatan</button><button id="t6">Tentang</button><button id="t7">Info &amp; Pesan</button><button id="t8">CS</button><button id="t9">Tampilan</button></div>
+  <div class="tabs"><button id="t1" class="on">Pesanan</button><button id="t2">Produk &amp; akun</button><button id="t3">Kelompok</button><button id="t4">Diskon</button><button id="t5">Pendapatan</button><button id="t6">Tentang</button><button id="t7">Info &amp; Pesan</button><button id="t8">CS</button><button id="t9">Tampilan</button><button id="t10">Label</button></div>
 
+    <section id="s10" class="hide">
+    <div class="panel"><b>Daftar label</b>
+      <div class="msg">Label tampil di pojok kiri atas kartu produk, paket, dan nominal top up di web.</div>
+      <div id="lbl"></div></div>
+    <div class="panel"><b>Buat label baru</b>
+      <input type="text" id="lbn" placeholder="Nama label (mis. Terlaris, Promo, Baru)" maxlength="14">
+      <label for="lbc">Warna</label>
+      <input type="color" id="lbc" value="#ff3b5c" style="width:100%;height:46px;padding:2px">
+      <button class="btn" id="lba">Tambah label</button></div>
+    <div class="panel"><b>Pasang label</b>
+      <label for="lbp">Pilih produk</label><select id="lbp"></select>
+      <label for="lbpl">Label produk (kartu di beranda)</label><select id="lbpl"></select>
+      <label for="lbk">Pilih paket / nominal</label><select id="lbk"></select>
+      <label for="lbkl">Label paket / nominal</label><select id="lbkl"></select>
+      <button class="btn" id="lbs">Terapkan label</button>
+      <div class="msg">Pilih "(tanpa label)" untuk menghapus. Setelah itu tekan Simpan semua perubahan.</div></div>
+  </section>
   <div id="mtbar" hidden>🛠 MAINTENANCE AKTIF — web tertutup untuk pengunjung</div>
   <section id="s1">
     <div class="srch"><i>🔍</i><input type="search" id="q" placeholder="Cari ID pesanan / nama..."></div>
@@ -106,6 +123,18 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
   </section>
 
   <section id="s2" class="hide">
+    <div class="panel"><b>Top up game</b>
+      <div class="msg">Jadikan produk sebagai game top up. Di web tampil di menu Top Up: pembeli isi ID akun, pilih nominal, lalu beli. ID akun ikut masuk ke catatan pesanan.</div>
+      <label for="tpc">Info singkat di halaman Top Up (pisahkan koma)</label>
+      <input type="text" id="tpc" placeholder="mis. Proses 1-3 menit, Gagal = saldo kembali">
+      <button class="btn g" id="tpcb">Terapkan info</button>
+      <label for="tps" style="margin-top:12px">Pilih produk</label><select id="tps"></select>
+      <div class="msg" id="tpst"></div>
+      <button class="btn" id="tpb">Jadikan top up game</button>
+      <label for="tpi" style="margin-top:10px">Nama kolom ID (opsional)</label><input type="text" id="tpi" placeholder="ID Player">
+      <label for="tpv">Kolom server/zone (kosong = tidak perlu)</label><input type="text" id="tpv" placeholder="mis. Server / Zone">
+      <label for="tph">Nominal terlaris (pisahkan koma)</label><input type="text" id="tph" placeholder="mis. 5 Diamond, 15 Diamond">
+      <button class="btn g" id="tpa">Terapkan pengaturan</button></div>
     <div class="panel"><b>Produk</b>
       <label for="ps">Pilih produk</label><select id="ps"></select>
       <div class="msg" id="pinfo"></div>
@@ -293,8 +322,8 @@ $("plg").onclick=async function(){PW=$("pw").value;$("pe").textContent="";
 $("out").onclick=function(){PW="";try{localStorage.removeItem("elz_pw")}catch(e){}$("app").classList.add("hide");$("lg").classList.remove("hide")};
 if(PW)enter();
 
-function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});var sv=(n>=2&&n<=4)||n===6||n===7||n===9;$("sv").classList.toggle("hide",!sv);if(sv)loadProd();if(n===5)drawR();if(n===8)loadCL()}
-[1,2,3,4,5,6,7,8,9].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
+function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});var sv=(n>=2&&n<=4)||n===6||n===7||n===9||n===10;$("sv").classList.toggle("hide",!sv);if(sv)loadProd();if(n===5)drawR();if(n===8)loadCL()}
+[1,2,3,4,5,6,7,8,9,10].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
 [].forEach.call($("fl").children,function(b){b.onclick=function(){FL=b.getAttribute("data-f");[].forEach.call($("fl").children,function(x){x.classList.toggle("on",x===b)});tab(1);drawO()}});
 $("q").oninput=drawO;
 async function load(){try{var r=await api("/api/orders");if(r.ok){ORD=(await r.json()).orders||[];drawO()}}catch(e){}}
@@ -339,7 +368,7 @@ async function loadProd(){
     if(!DATA){try{DATA=await (await fetch("/defaults.json")).json()}catch(e){DATA={}}}}
   drawP()}
 function dirty(){var kb=Math.round(JSON.stringify(DATA).length/1024);$("smsg").textContent="Ada perubahan yang belum disimpan. Ukuran data: "+kb+" KB. Tekan Simpan semua perubahan."}
-function drawP(){var s=$("ps"),cur=s.value;s.innerHTML="";PK().forEach(function(k){var o=mk("option",k);o.value=k;s.appendChild(o)});if(cur&&DATA[cur])s.value=cur;drawK();fillD();fillV();drawG();drawD();drawI();drawT();drawAb()}
+function drawP(){var s=$("ps"),cur=s.value;s.innerHTML="";PK().forEach(function(k){var o=mk("option",k);o.value=k;s.appendChild(o)});if(cur&&DATA[cur])s.value=cur;drawK();fillD();fillV();drawG();drawD();drawI();drawT();drawAb();drawTp();drawLb()}
 function fillV(){var k=$("ps").value,s=$("vsel");s.innerHTML="";if(!DATA[k])return;DATA[k].p.forEach(function(it,i){var o=mk("option",(it[4]?"🎬 ":"")+it[0]);o.value=i;s.appendChild(o)});$("vin").value=(DATA[k].p[0]&&DATA[k].p[0][4])||"";DEb.set((DATA[k].p[0]&&DATA[k].p[0][2])||"")}
 function fillD(){var k=$("ps").value;$("ed").value=(DATA[k]&&DATA[k].d)||"";$("edl").value=(DATA[k]&&DATA[k].dl)||""}
 function drawK(){var k=$("ps").value,b=$("pk");b.innerHTML="";$("pdel").textContent="Hapus produk ini";if(!DATA[k])return;
@@ -468,6 +497,33 @@ $("payb").onclick=async function(){var n=$("payt").value.replace(/\D/g,"");if(!n
   try{var r=await api("/api/pay?op=notif",{method:"POST",body:JSON.stringify({text:"Kamu menerima Rp"+n})}),j=await r.json();
     $("paym").textContent=r.status===401?"Password salah.":!r.ok?"Gagal (kode "+r.status+"). Pastikan api/pay.js sudah dipasang.":j.matched?"Cocok! Ada pembeli yang menunggu nominal itu, sudah ditandai lunas.":"Server menerima, tapi tidak ada pembeli yang menunggu nominal itu."}
   catch(e){$("paym").textContent="Gagal terhubung. Cek internet."}};
+function tpKeys(){return PK().filter(function(k){return k!==FFK})}
+function drawTp(){var s=$("tps");if(!s||!DATA)return;var cur=s.value;s.innerHTML="";tpKeys().forEach(function(k){var o=mk("option",k+(DATA[k].tp?"  [TOP UP]":""));o.value=k;s.appendChild(o)});if(cur&&DATA[cur])s.value=cur;tpLoad()}
+function tpLoad(){$("tpc").value=(DATA.__tpinfo||[]).join(", ");var k=$("tps").value,d=DATA[k];if(!d){$("tpst").textContent="Belum ada produk.";return}
+  $("tpi").value=d.idl||"";$("tpv").value=typeof d.sv==="string"?d.sv:(d.sv?"Server / Zone":"");$("tph").value=(d.hot||[]).join(", ");
+  $("tpb").textContent=d.tp?"Matikan top up game":"Jadikan top up game";$("tpst").textContent=d.tp?"Status: TOP UP GAME (tampil di menu Top Up)":"Status: produk biasa"}
+$("tps").onchange=tpLoad;
+$("tpcb").onclick=function(){var h=$("tpc").value.split(",").map(function(x){return x.trim()}).filter(Boolean);if(h.length)DATA.__tpinfo=h;else delete DATA.__tpinfo;dirty();$("smsg").textContent="Info top up diterapkan. Tekan Simpan semua perubahan."};
+$("tpb").onclick=function(){var k=$("tps").value,d=DATA[k];if(!d)return;if(d.tp)delete d.tp;else d.tp=1;dirty();drawTp()};
+$("tpa").onclick=function(){var k=$("tps").value,d=DATA[k];if(!d)return;var i=$("tpi").value.trim(),v=$("tpv").value.trim(),h=$("tph").value.split(",").map(function(x){return x.trim()}).filter(Boolean);
+  if(i)d.idl=i;else delete d.idl;if(v)d.sv=v;else delete d.sv;if(h.length)d.hot=h;else delete d.hot;dirty();$("smsg").textContent="Pengaturan top up diterapkan. Tekan Simpan semua perubahan."};
+function lbs(){return DATA.__labels||(DATA.__labels=[])}
+function fillLbSel(s){var cur=s.value;s.innerHTML="";var o0=mk("option","(tanpa label)");o0.value="";s.appendChild(o0);lbs().forEach(function(x){var o=mk("option",x.n);o.value=x.n;s.appendChild(o)});s.value=cur||""}
+function lbLoad(){var d=DATA[$("lbp").value],sk=$("lbk");sk.innerHTML="";if(!d)return;$("lbpl").value=d.lb||"";
+  d.p.forEach(function(it){var o=mk("option",it[0]);o.value=it[0];sk.appendChild(o)});$("lbkl").value=(d.pl||{})[sk.value]||""}
+function drawLb(){var b=$("lbl");if(!b||!DATA)return;b.innerHTML="";var L=lbs();
+  if(!L.length)b.appendChild(mk("div","Belum ada label.","msg"));
+  L.forEach(function(x,i){var r=mk("div",null,"ar"),sp=mk("span",x.n);sp.style.cssText="padding:4px 12px;border-radius:999px;font-weight:700;color:#fff;background:"+(x.c||"#ff3b5c");r.appendChild(sp);
+    var del=mk("button","Hapus");del.onclick=function(){var n=x.n;L.splice(i,1);PK().forEach(function(k){var d=DATA[k];if(d.lb===n)delete d.lb;if(d.pl){Object.keys(d.pl).forEach(function(q){if(d.pl[q]===n)delete d.pl[q]});if(!Object.keys(d.pl).length)delete d.pl}});dirty();drawLb()};
+    r.appendChild(del);b.appendChild(r)});
+  var sp=$("lbp"),cur=sp.value;sp.innerHTML="";PK().forEach(function(k){var o=mk("option",k);o.value=k;sp.appendChild(o)});if(cur&&DATA[cur])sp.value=cur;
+  fillLbSel($("lbpl"));fillLbSel($("lbkl"));lbLoad()}
+$("lbp").onchange=lbLoad;$("lbk").onchange=function(){var d=DATA[$("lbp").value];$("lbkl").value=(d&&d.pl||{})[this.value]||""};
+$("lba").onclick=function(){var n=$("lbn").value.trim();if(!n){$("smsg").textContent="Isi nama label dulu.";return}
+  if(lbs().some(function(x){return x.n===n})){$("smsg").textContent="Nama label sudah ada.";return}lbs().push({n:n,c:$("lbc").value});$("lbn").value="";dirty();drawLb()};
+$("lbs").onclick=function(){var d=DATA[$("lbp").value];if(!d)return;var a=$("lbpl").value;if(a)d.lb=a;else delete d.lb;
+  var pk=$("lbk").value,bl=$("lbkl").value;if(pk){d.pl=d.pl||{};if(bl)d.pl[pk]=bl;else delete d.pl[pk];if(!Object.keys(d.pl).length)delete d.pl}
+  dirty();$("smsg").textContent="Label diterapkan. Tekan Simpan semua perubahan."};
 function gl(){return DATA.__groups||(DATA.__groups=[])}
 function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");var lb=mk("span",null);lb.style.cssText="display:flex;align-items:center;gap:8px;min-width:0";
   if(G.img){var im=mk("img");im.src=G.img;im.style.cssText="width:38px;height:38px;border-radius:10px;object-fit:cover;flex:none";lb.appendChild(im)}else lb.appendChild(mk("span",G.ic||"📁"));
