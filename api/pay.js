@@ -73,7 +73,7 @@ module.exports = async (req, res) => {
         for (const n of amounts(text)) {
           const rid = await r(["GET", "elzpay:" + n]);
           if (rid) {
-            await r(["SET", "elzpaid:" + rid, "1", "EX", 86400]);
+            await r(["SET", "elzpaid:" + rid, String(n), "EX", 86400]);
             await r(["DEL", "elzpay:" + n]);
             return res.status(200).json({ ok: true, matched: true, amount: n });
           }
