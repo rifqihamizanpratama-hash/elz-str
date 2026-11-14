@@ -262,6 +262,10 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <button class="btn" id="chk">Jalankan cek</button>
       <button class="btn g" id="beept">Tes bunyi notifikasi</button>
       <div id="chkr"></div></div>
+    <div class="panel"><b>Mode pembayaran</b>
+      <div class="msg">Foto bukti transfer gampang dipalsukan. "Otomatis saja" hanya menerima pembayaran yang benar-benar terdeteksi masuk (lewat notifikasi DANA di HP admin), bukti foto tidak diterima.</div>
+      <select id="pmd"><option value="both">Otomatis + bukti manual (admin cek mutasi)</option><option value="auto">Otomatis saja (tolak bukti foto)</option></select>
+      <div class="msg">Pesanan dari bukti manual diberi catatan "BUKTI MANUAL - CEK MUTASI". Pesanan yang terdeteksi otomatis diberi catatan "LUNAS OTOMATIS".</div></div>
     <div class="panel"><b>Pembayaran otomatis (HP)</b>
       <div class="msg">Alamat untuk MacroDroid: <b id="payurl"></b></div>
       <div class="msg">Header: x-admin-pw = password admin. Body JSON: {"text":"isi notifikasi"}</div>
@@ -435,7 +439,7 @@ function mkDE(box){var d=mk("input"),rows=mk("div"),ad=mk("button","+ Tambah poi
     set:function(str){rows.innerHTML="";var L=String(str||"").split("\n").map(function(x){return x.trim()}).filter(Boolean);d.value=L.length?L[0].replace(/^!\s*/,""):"";L.slice(1).forEach(function(t){row(t.replace(/^!\s*/,""),/^!/.test(t))});if(L.length<2){row("",false);row("",false)}}}}
 var DEa=mkDE($("dEa")),DEb=mkDE($("dEb"));DEa.set("");
 function drawT(){var q=$("qpv"),l=$("lpv");q.hidden=!DATA.__qris;if(DATA.__qris)q.src=DATA.__qris;$("qmsg").textContent=DATA.__qris?"QRIS kustom aktif.":"Memakai QRIS bawaan.";
-  l.hidden=!DATA.__logo;if(DATA.__logo)l.src=DATA.__logo;$("clr").value=DATA.__color||"#46bfff";$("clb").value=DATA.__bg||"#050506";$("qrs").value=DATA.__qrisStr||"";mtDraw()}
+  l.hidden=!DATA.__logo;if(DATA.__logo)l.src=DATA.__logo;$("clr").value=DATA.__color||"#46bfff";$("clb").value=DATA.__bg||"#050506";$("qrs").value=DATA.__qrisStr||"";$("pmd").value=DATA.__paymode==="auto"?"auto":"both";mtDraw()}
 $("qif").onchange=async function(){var f=this.files[0];if(!f)return;try{var d,qs=[0.85,0.72,0.58];for(var i=0;i<qs.length;i++){d=await prep(f,1000,false,qs[i]);if(d.length<230000)break}DATA.__qris=d;$("qil").textContent="QRIS dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto QRIS gagal dibaca."}};
 $("qrst").onclick=function(){delete DATA.__qris;dirty();drawT()};
 $("lif").onchange=async function(){var f=this.files[0];if(!f)return;try{DATA.__logo=await prep(f,320,true,0.85);$("lil").textContent="Logo dipilih (ketuk untuk ganti)";dirty();drawT()}catch(e){$("smsg").textContent="Foto logo gagal dibaca."}};
@@ -524,6 +528,7 @@ $("lba").onclick=function(){var n=$("lbn").value.trim();if(!n){$("smsg").textCon
 $("lbs").onclick=function(){var d=DATA[$("lbp").value];if(!d)return;var a=$("lbpl").value;if(a)d.lb=a;else delete d.lb;
   var pk=$("lbk").value,bl=$("lbkl").value;if(pk){d.pl=d.pl||{};if(bl)d.pl[pk]=bl;else delete d.pl[pk];if(!Object.keys(d.pl).length)delete d.pl}
   dirty();$("smsg").textContent="Label diterapkan. Tekan Simpan semua perubahan."};
+$("pmd").onchange=function(){if(this.value==="auto")DATA.__paymode="auto";else delete DATA.__paymode;dirty()};
 function gl(){return DATA.__groups||(DATA.__groups=[])}
 function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");var lb=mk("span",null);lb.style.cssText="display:flex;align-items:center;gap:8px;min-width:0";
   if(G.img){var im=mk("img");im.src=G.img;im.style.cssText="width:38px;height:38px;border-radius:10px;object-fit:cover;flex:none";lb.appendChild(im)}else lb.appendChild(mk("span",G.ic||"📁"));
