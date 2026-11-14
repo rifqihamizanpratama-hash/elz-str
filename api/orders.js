@@ -1,3 +1,7 @@
+// Penjaga pesanan: file orders.js ASLI diganti namanya menjadi _orders.js (tetap dipakai).
+// File ini memeriksa pembayaran dulu, lalu meneruskan pesanan ke _orders.js.
+const orders = require("./_orders.js");
+
 const U = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
 const T = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
 
@@ -12,80 +16,56 @@ async function r(cmd) {
   return j.result;
 }
 const isAdmin = (req) => !!process.env.ADMIN_PASSWORD && req.headers["x-admin-pw"] === process.env.ADMIN_PASSWORD;
-const body = (req) => (typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {});
-const str = (v, n) => String(v == null ? "" : v).trim().slice(0, n);
-const num = (v, max) => Math.max(0, Math.min(max, Math.floor(Number(v) || 0)));
-const mask = (n) => { n = String(n || "").trim(); return n.length <= 2 ? n.charAt(0) + "*" : n.slice(0, 2) + "***"; };
-function pairs(flat) {
-  const out = [];
-  for (let i = 0; i < (flat || []).length; i += 2) {
-    try { out.push(JSON.parse(flat[i + 1])); } catch (e) {}
-  }
-  return out;
+const parse = (req) => {
+  try { return typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {}; } catch (e) { return null; }
+};
+
+// harga resmi dari data toko (sama dengan fungsi ep() di web)
+function officialPrice(DATA, prod, pkg) {
+  const key = String(prod || "").replace(/^TOP UP /, "");
+  const d = DATA[key];
+  if (!d || !Array.isArray(d.p)) return null;
+  const it = d.p.find((x) => x[0] === pkg);
+  if (!it) return null;
+  if (d.so || (d.sp || []).includes(pkg)) return { soldOut: true };
+  let pct = d.pd && d.pd[pkg] != null ? d.pd[pkg] : d.disc || 0;
+  pct = Math.max(0, Math.min(99, +pct || 0));
+  return { price: Math.round((+it[1] * (100 - pct)) / 100) };
 }
 
 module.exports = async (req, res) => {
-  res.setHeader("Cache-Control", "no-store");
-  if (!U || !T) return res.status(500).json({ error: "database belum tersambung" });
+  let usedKey = null;
   try {
-    const q = req.query || {};
-    // Publik: pembeli membuat pesanan
-    if (req.method === "POST") {
-      const ip = String(req.headers["x-forwarded-for"] || "x").split(",")[0].trim();
-      const rk = "rl:" + ip;
-      const n = await r(["INCR", rk]);
-      if (n === 1) await r(["EXPIRE", rk, 3600]);
-      if (n > 20) return res.status(429).json({ error: "terlalu banyak" });
-      const b = body(req);
-      const o = {
-        nm: str(b.nm, 60), wa: str(b.wa, 25), lk: str(b.lk, 300),
-        prod: str(b.prod, 80), pkg: str(b.pkg, 80), note: str(b.note, 60),
-        price: num(b.price, 10000000), q: num(b.q, 100000),
-      };
-      if (!o.nm || o.wa.replace(/\D/g, "").length < 9 || !o.prod || !o.q) {
-        return res.status(400).json({ error: "data tidak lengkap" });
+    if (req.method === "POST" && U && T && !isAdmin(req)) {
+      const b = parse(req);
+      if (b && b.prod) {
+        const raw = await r(["GET", "elzdata"]);
+        const DATA = raw ? JSON.parse(raw).DATA : null;
+        if (DATA && DATA.__paymode === "auto") {
+          const off = officialPrice(DATA, b.prod, b.pkg);
+          if (!off) return res.status(400).json({ ok: false, error: "produk tidak dikenal" });
+          if (off.soldOut) return res.status(409).json({ ok: false, error: "produk sold out" });
+          const q = Math.floor(+b.q);
+          if (!(q >= 1 && q <= 1000)) return res.status(400).json({ ok: false, error: "jumlah tidak valid" });
+          const total = off.price * q;
+          if (total > 0) {
+            const rid = String(b.payrid || "");
+            if (!/^[a-f0-9]{12,32}$/.test(rid)) return res.status(402).json({ ok: false, error: "pembayaran belum terdeteksi" });
+            const paid = +(await r(["GET", "elzpaid:" + rid]));
+            if (!(paid >= total)) return res.status(402).json({ ok: false, error: "pembayaran belum terdeteksi atau kurang" });
+            if ((await r(["SET", "elzused:" + rid, "1", "NX", "EX", 604800])) !== "OK")
+              return res.status(409).json({ ok: false, error: "pembayaran ini sudah dipakai" });
+            usedKey = "elzused:" + rid;
+          }
+          // paksa memakai harga resmi, bukan harga kiriman pembeli
+          req.body = Object.assign({}, b, { price: off.price, q });
+        }
       }
-      const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      const hasProof = typeof b.proof === "string" && b.proof.startsWith("data:image/") && b.proof.length <= 450000;
-      if (hasProof) await r(["SET", "p:" + id, b.proof, "EX", 5184000]);
-      const order = { id, ts: Date.now(), ...o, total: o.price * o.q, status: "menunggu", proof: hasProof };
-      await r(["HSET", "orders", id, JSON.stringify(order)]);
-      return res.status(200).json({ ok: true, id, code: id.toUpperCase() });
     }
-    // Publik: antrian dengan nama disamarkan
-    if (req.method === "GET" && q.view === "queue") {
-      const list = pairs(await r(["HGETALL", "orders"]))
-        .sort((a, b) => b.ts - a.ts).slice(0, 60)
-        .map((o) => ({ id: o.id, n: mask(o.nm), prod: o.prod, pkg: o.pkg, q: o.q, status: o.status, ts: o.ts }));
-      return res.status(200).json({ queue: list });
-    }
-    // Admin
-    if (!isAdmin(req)) return res.status(401).json({ error: "password salah" });
-    if (req.method === "GET") {
-      if (q.proof) {
-        const v = await r(["GET", "p:" + String(q.proof)]);
-        return res.status(200).json({ proof: v || null });
-      }
-      const list = pairs(await r(["HGETALL", "orders"])).sort((a, b) => b.ts - a.ts).slice(0, 500);
-      return res.status(200).json({ orders: list });
-    }
-    const b = body(req);
-    if (req.method === "PUT") {
-      const v = await r(["HGET", "orders", String(b.id)]);
-      if (!v) return res.status(404).json({ error: "tidak ada" });
-      const o = JSON.parse(v);
-      o.status = b.status === "selesai" ? "selesai" : "menunggu";
-      o.doneAt = o.status === "selesai" ? Date.now() : null;
-      await r(["HSET", "orders", o.id, JSON.stringify(o)]);
-      return res.status(200).json({ ok: true });
-    }
-    if (req.method === "DELETE") {
-      await r(["HDEL", "orders", String(b.id)]);
-      await r(["DEL", "p:" + String(b.id)]);
-      return res.status(200).json({ ok: true });
-    }
-    return res.status(405).end();
   } catch (e) {
-    return res.status(500).json({ error: "server error" });
+    return res.status(500).json({ ok: false, error: "server error" });
   }
+  await orders(req, res);
+  // kalau pesanan gagal disimpan, pembayaran boleh dipakai lagi
+  try { if (usedKey && res.statusCode >= 400) await r(["DEL", usedKey]); } catch (e) {}
 };
