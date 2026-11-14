@@ -523,7 +523,7 @@ $("next2").onclick=function(){
   $("e2").textContent=e;if(e)return;
   var sm=summary();order.nm=n;order.wa=w;order.lk=l;
   $("sum3").innerHTML=sm+"<br>Nama: "+esc(n)+"<br>WhatsApp: "+esc(w);
-  qrDraw(order.total);
+  if(autoMode()){$("qrBox").innerHTML="";$("qrNote").textContent="Menyiapkan QR pembayaran..."}else qrDraw(order.total);
   $("pf").value="";$("upl").textContent="Ketuk untuk pilih foto bukti";$("pv").classList.add("hide");
   order.pay=null;order.paid=false;payUI();setHref();view("s3");reserveAmt()};
 $("back3").onclick=function(){view("s2")};
@@ -549,8 +549,8 @@ function shrink(f){return new Promise(function(ok,no){var r=new FileReader();r.o
   var m=900,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
   c.getContext("2d").drawImage(im,0,0,c.width,c.height);ok(c.toDataURL("image/jpeg",0.62))};im.src=r.result};r.readAsDataURL(f)})}
 $("conf").onclick=async function(){var b=this;if(b.disabled)return;b.disabled=true;b.textContent="Mengirim...";$("cerr").textContent="";
-  var proof=null,f=$("pf").files[0];if(order.total>0&&!f&&!order.paid){b.textContent="Konfirmasi pesanan";payUI();return}if(f){try{proof=await shrink(f)}catch(e){}}
-  try{var r=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nm:order.nm,wa:order.wa,prod:order.prod,pkg:order.pkg,note:(order.note||"")+(order.paid&&order.pay?(order.note?" | ":"")+"LUNAS OTOMATIS "+rp(order.pay.amount):""),price:order.price,q:order.q,proof:proof})});
+  var proof=null,f=$("pf").files[0];if(order.total>0&&!order.paid&&(!f||autoMode())){b.textContent="Konfirmasi pesanan";payUI();return}if(f){try{proof=await shrink(f)}catch(e){}}
+  try{var r=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({nm:order.nm,wa:order.wa,prod:order.prod,pkg:order.pkg,note:(order.note||"")+(order.paid&&order.pay?(order.note?" | ":"")+"LUNAS OTOMATIS "+rp(order.pay.amount):(f?(order.note?" | ":"")+"BUKTI MANUAL - CEK MUTASI":"")),price:order.price,q:order.q,proof:proof,payrid:(order.paid&&order.pay)?order.pay.rid:undefined})});
     var j=await r.json();if(!r.ok||!j.ok)throw 0;
     MY.push(j.id);try{localStorage.setItem("elz_my",JSON.stringify(MY.slice(-30)))}catch(e){}
     $("code").textContent="ORD-"+j.code;sel=null;view("s6")}
@@ -1636,17 +1636,18 @@ function qrDraw(total){var box=$("qrBox"),note=$("qrNote"),str=qrisStr();box.inn
   box.innerHTML=QR_SRC?'<img src="'+QR_SRC+'" alt="QRIS pembayaran">':"";note.textContent="Scan QRIS di atas, bayar sesuai total, lalu unggah bukti pembayaran."}
 
 /* ===== Wajib bayar: tanpa bukti, pesanan tidak bisa dikonfirmasi (total Rp 0 bebas) ===== */
-function payUI(){var need=order.total>0,has=!!$("pf").files[0],paid=!!order.paid;
-  ["pfl","upl"].forEach(function(i){$(i).classList.toggle("hide",!need||paid)});if(!need||paid)$("pv").classList.add("hide");
+function autoMode(){return (window.DATA&&DATA.__paymode)==="auto"}
+function payUI(){var need=order.total>0,auto=autoMode(),has=!!$("pf").files[0],paid=!!order.paid,showProof=need&&!paid&&!auto;
+  ["pfl","upl"].forEach(function(i){$(i).classList.toggle("hide",!showProof)});if(!showProof)$("pv").classList.add("hide");
   $("qrBox").classList.toggle("hide",!need||paid);
-  var b=$("conf");b.disabled=need&&!has&&!paid;b.style.opacity=b.disabled?".5":"";
-  $("cerr").textContent=(need&&!has&&!paid)?"Bayar dulu lewat QRIS. Setelah pembayaran terdeteksi tombol ini aktif otomatis, atau upload bukti pembayaran.":"";
+  var b=$("conf");b.disabled=need&&!paid&&(auto||!has);b.style.opacity=b.disabled?".5":"";
+  $("cerr").textContent=(need&&!paid)?(auto?"Bayar lewat QRIS di atas. Tombol ini aktif otomatis setelah pembayaranmu terdeteksi.":"Bayar dulu lewat QRIS. Setelah pembayaran terdeteksi tombol ini aktif otomatis, atau upload bukti pembayaran."):"";
   if(!need)$("qrNote").textContent="Total Rp 0, tidak perlu bayar. Langsung konfirmasi pesanan.";
   else if(paid)$("qrNote").textContent="✅ Pembayaran "+rp(order.pay.amount)+" sudah diterima. Silakan konfirmasi pesanan."}
 function reserveAmt(){if(!(order.total>0))return;
   fetch("/api/pay?op=reserve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({base:order.total})}).then(function(r){return r.ok?r.json():null}).then(function(j){
-    if(!j||!j.rid)return;order.pay={rid:j.rid,amount:j.amount,k:j.k};qrDraw(j.amount);
-    $("qrNote").textContent="Scan QRIS di atas. Bayar tepat "+rp(j.amount)+(j.k?" (sudah termasuk kode unik Rp "+j.k+")":"")+". Pembayaran terdeteksi otomatis, berlaku 30 menit."}).catch(function(){})}
+    if(!j||!j.rid){if(autoMode())$("qrNote").textContent="Pembayaran otomatis sedang tidak tersedia. Silakan hubungi CS.";return}order.pay={rid:j.rid,amount:j.amount,k:j.k};qrDraw(j.amount);
+    $("qrNote").textContent="Scan QRIS di atas. Bayar tepat "+rp(j.amount)+(j.k?" (sudah termasuk kode unik Rp "+j.k+")":"")+". Pembayaran terdeteksi otomatis, berlaku 30 menit."}).catch(function(){if(autoMode()&&!order.pay)$("qrNote").textContent="Pembayaran otomatis sedang tidak tersedia. Silakan hubungi CS."})}
 function payCheck(){if(!order||!order.pay||order.paid||$("s3").classList.contains("hide"))return;
   fetch("/api/pay?id="+order.pay.rid,{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){if(!j)return;
     if(j.paid){order.paid=true;payUI()}
