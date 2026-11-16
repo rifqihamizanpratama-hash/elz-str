@@ -215,11 +215,11 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <textarea id="abt" rows="3" placeholder="mis. ELZ STR - tempat jual beli dan jasa terpercaya"></textarea>
       <button class="btn g" id="abts">Terapkan deskripsi</button></div>
     <div class="panel"><b>Daftar kontak dan link</b>
-      <div class="msg">Tampil di menu Tentang di web. Tanda ↑ menaikkan urutan.</div>
+      <div class="msg">Kategori biasa tampil di menu Tentang. Kategori "Joki Kontak" tampil di menu Joki Kontak (tombol garis tiga di web), isi nama joki + nomor WA masing-masing. Tanda ↑ menaikkan urutan.</div>
       <div id="abl"></div></div>
     <div class="panel"><b>Tambah baru / ubah</b>
       <label for="abc">Kategori</label>
-      <select id="abc"><option value="sosmed">Sosial Media</option><option value="wa">Admin WhatsApp</option><option value="grup">Grup (GB)</option><option value="saluran">Saluran</option><option value="lain">Lainnya</option></select>
+      <select id="abc"><option value="sosmed">Sosial Media</option><option value="wa">Admin WhatsApp</option><option value="grup">Grup (GB)</option><option value="saluran">Saluran</option><option value="jk">Joki Kontak</option><option value="lain">Lainnya</option></select>
       <input type="text" id="abn" placeholder="Nama (mis. Instagram, WA CS 1)" style="margin-top:8px">
       <input type="text" id="abd" placeholder="Keterangan singkat (opsional)" style="margin-top:6px">
       <input type="text" id="abu" placeholder="Link atau nomor WA (0812xxxx / https://...)" style="margin-top:6px">
@@ -467,7 +467,7 @@ async function vidUp(file,el,done){
   }catch(e){el.textContent="Gagal mengunggah: "+((e&&e.message)||"cek internet")+". Coba lagi, atau pakai link video."}}
 $("vup").onchange=function(){var f=this.files[0];this.value="";if(f)vidUp(f,$("vum"),function(p){$("vin").value=p;$("vsv").click()})};
 $("kvup").onchange=function(){var f=this.files[0];this.value="";if(f)vidUp(f,$("kvm"),function(p){$("kv").value=p})};
-var ABC={sosmed:"Sosial Media",wa:"Admin WhatsApp",grup:"Grup",saluran:"Saluran",lain:"Lainnya"},ABI="",ABE=-1;
+var ABC={sosmed:"Sosial Media",wa:"Admin WhatsApp",grup:"Grup",saluran:"Saluran",jk:"Joki Kontak",lain:"Lainnya"},ABI="",ABE=-1;
 function abReset(){ABE=-1;ABI="";$("abn").value="";$("abd").value="";$("abu").value="";$("abfl").textContent="Foto atau logo (opsional)";$("aba").textContent="Tambah";$("abx").hidden=true}
 function al(){return DATA.__about||(DATA.__about=[])}
 function drawAb(){var b=$("abl");if(!b||!DATA)return;b.innerHTML="";$("abt").value=DATA.__abouttext||"";var L=al();
