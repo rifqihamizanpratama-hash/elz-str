@@ -360,6 +360,45 @@ nav a,nav button{white-space:nowrap;font-size:13px}
 #abx .abk svg{width:24px;height:24px}
 #abx .abnote{margin:30px 4px 0;text-align:center;color:#777;font-size:16px;line-height:1.6}
 #abx .abnote b{color:#0a0a0a}
+
+#abx .abch2{display:flex;flex-wrap:wrap;gap:10px;padding:16px 20px 0}
+#abx .abchip{padding:10px 16px;border:3px solid #0a0a0a;border-radius:999px;background:linear-gradient(180deg,#fff 0%,#e4e4e4 45%,#bcbcbc 56%,#ececec 100%);color:#0a0a0a;font-family:"Space Mono",ui-monospace,monospace;font-weight:700;font-size:16px;cursor:pointer}
+#abx .abchip.white{background:#fff}
+#abx textarea#abmsg{display:block;width:calc(100% - 40px);margin:14px 20px 0;padding:6px 0;border:0;background:transparent;color:#0a0a0a;font-family:inherit;font-weight:700;font-size:20px;line-height:1.45;text-transform:uppercase;resize:vertical;min-height:110px;outline:none}
+#abx .abcf{padding-top:12px}
+#abx .abm{flex:none;padding:12px 18px;border:3px solid #0a0a0a;border-radius:999px;background:#0b0b0b;color:#fff;font-family:inherit;font-weight:800;font-size:15px;letter-spacing:1px;cursor:pointer}
+#abx .abm:active{transform:translate(2px,2px)}
+
+#abx .abjx b{white-space:normal;word-break:break-word;font-size:17px;line-height:1.15}
+#abx .abjx small{white-space:normal;font-size:12px}
+#abx .abm{padding:11px 14px;font-size:14px}
+#abx .abcf{font-size:13px;letter-spacing:.5px}
+#abx .abk{font-size:17px;padding:16px 6px}
+
+#abx .abg3{display:flex;gap:12px;padding:20px 20px 0;align-items:stretch}
+#abx .abk3{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 10px;border:3.5px solid #0a0a0a;border-radius:28px;background:linear-gradient(180deg,#fff 0%,#e8e8e8 45%,#bdbdbd 56%,#eee 100%);box-shadow:5px 5px 0 #0a0a0a;color:#0a0a0a;font-family:inherit;font-weight:800;font-size:17px;letter-spacing:1px;cursor:pointer}
+#abx .abk3 svg{width:22px;height:22px}
+#abx .abk3.go{flex:1.2;font-size:19px}
+#abx .abk3.stop{flex:1;background:#fff;border-color:#b5b5b5;color:#9a9a9a;box-shadow:none}
+#abx .abk3.stop.on{border-color:#0a0a0a;color:#0a0a0a;box-shadow:5px 5px 0 #0a0a0a}
+#abx .abk3:active{transform:translate(3px,3px)}
+#abx .abprog{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:3.5px solid #0a0a0a;border-radius:28px;background:linear-gradient(180deg,#fff 0%,#e8e8e8 45%,#bdbdbd 56%,#eee 100%)}
+#abx .abprog small{font-family:"Space Mono",ui-monospace,monospace;font-size:11px;letter-spacing:3px;color:#666}
+#abx .abprog b{font-family:"Space Mono",ui-monospace,monospace;font-size:20px}
+#abx .abmsgline{padding:14px 22px 0;font-family:"Space Mono",ui-monospace,monospace;font-size:13px;color:#777;line-height:1.5}
+#abx .abj.done{background:#ececec}
+#abx .abj.done .abm{background:#2c7a3f}
+#abx .abj.done .abm::after{content:" ✓"}
+
+#abx .abg3{padding:20px 16px 0;gap:10px}
+#abx .abk3{padding:14px 4px;font-size:15px;min-width:0;letter-spacing:.5px}
+#abx .abk3.go{flex:1.3;font-size:16px}
+#abx .abk3 svg{width:18px;height:18px}
+#abx .abprog{min-width:0;padding:0 4px}
+#abx .abprog small{letter-spacing:1px;font-size:10px}
+#abx .abprog b{font-size:18px}
+#abx .abg{padding:16px;gap:12px}
+#abx .abk{min-width:0;padding:15px 4px;font-size:15px}
 </style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Archivo+Black&amp;family=Space+Mono:wght@400;700&amp;display=swap">
@@ -1801,33 +1840,57 @@ $("pf").addEventListener("change",payUI);
 (function(){
   var O=document.createElement("div");O.id="abx";O.hidden=true;
   var SEND='<svg class="i" viewBox="0 0 24 24"><path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4z"/></svg>';
+  var PLAY='<svg class="i" viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>';
+  var DEF="Halo kak {nama}, saya mau pakai jasa Joki Kontak ELZ STR. ({tanggal})";
   O.innerHTML='<div class="abh"><div class="abt">ELZ JOKI KONTAK</div><div class="abr"><span class="abclk" id="abclk"></span>'+
     '<button class="abb" id="abback"><svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Kembali</button>'+
     '<button class="abb" id="abre"><svg class="i" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>Muat ulang</button>'+
     '<a class="abb blue" id="absal" target="_blank" rel="noopener">'+SEND+'Saluran</a></div></div>'+
     '<div class="abdrip"></div>'+
     '<div class="abbody"><span class="abs" style="left:6px;top:-30px">✦</span><span class="abs" style="right:0;bottom:90px">✦</span>'+
-    '<div class="abc"><div class="abch"><span class="abn">1</span><span class="abl">Pilih joki</span></div><div class="abcb" id="abl"></div>'+
-    '<div class="abcf"><span>chat langsung via WhatsApp</span><span id="abcnt"></span></div></div>'+
-    '<div class="abc"><div class="abg"><button class="abk dark" id="abord"><svg class="i" viewBox="0 0 24 24"><path d="M6 8h12l1 12H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Order joki</button>'+
+    '<div class="abc"><div class="abch"><span class="abn">1</span><span class="abl">Pesan</span></div>'+
+    '<div class="abch2"><button class="abchip" data-ins="{nama}">{nama}</button><button class="abchip" data-ins="{tanggal}">{tanggal}</button><button class="abchip white" id="abex">✦ Contoh</button></div>'+
+    '<textarea id="abmsg" rows="4" spellcheck="false"></textarea>'+
+    '<div class="abcf"><span>dibaca ulang tiap tekan MULAI</span><span id="abcc"></span></div></div>'+
+    '<div class="abc"><div class="abg3"><button class="abk3 stop" id="abstop"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>STOP</button>'+
+    '<div class="abprog"><small>TERKIRIM</small><b id="abprog">0/0</b></div>'+
+    '<button class="abk3 go" id="abgo">'+PLAY+'<span>MULAI</span></button></div>'+
+    '<div class="abmsgline" id="abinfo"></div>'+
+    '<div class="abg"><button class="abk dark" id="abord"><svg class="i" viewBox="0 0 24 24"><path d="M6 8h12l1 12H5z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Order joki</button>'+
     '<button class="abk" id="abcs"><svg class="i" viewBox="0 0 24 24"><path d="M4 20l1.4-4.2A8 8 0 1 1 8.4 18.8z"/></svg>CS</button></div></div>'+
-    '<p class="abnote"><b>ELZ JOKI KONTAK</b> — pilih joki lalu chat langsung · Muat ulang = ambil data terbaru.</p></div>';
+    '<div class="abc"><div class="abch"><span class="abn">2</span><span class="abl">Pilih joki</span></div><div class="abcb" id="abl"></div>'+
+    '<div class="abcf"><span>MULAI di tiap baris = chat joki itu</span><span id="abcnt"></span></div></div>'+
+    '<p class="abnote"><b>ELZ JOKI KONTAK</b> — tulis pesan, tekan MULAI · Muat ulang = ambil data terbaru.</p></div>';
   document.body.appendChild(O);
-  function waHref(u,txt){u=String(u||"").trim();if(!u)return"#";if(/^https?:\/\//i.test(u))return u;var d=u.replace(/\D/g,"");
-    if(/^[+\d][\d\s\-+()]*$/.test(u)&&d.length>=9){if(d.charAt(0)==="0")d="62"+d.slice(1);else if(d.charAt(0)==="8")d="62"+d;return"https://wa.me/"+d+(txt?"?text="+encodeURIComponent(txt):"")}
-    return"https://"+u.replace(/^\/+/,"")}
+  var M=$("abmsg"),J=[],idx=0;
+  function waNum(u){u=String(u||"").trim();var d=u.replace(/\D/g,"");if(/^[+\d][\d\s\-+()]*$/.test(u)&&d.length>=9){if(d.charAt(0)==="0")d="62"+d.slice(1);else if(d.charAt(0)==="8")d="62"+d;return d}return""}
+  function waHref(u,txt){u=String(u||"").trim();if(!u)return"#";if(/^https?:\/\//i.test(u))return u;var d=waNum(u);
+    if(d)return"https://wa.me/"+d+(txt?"?text="+encodeURIComponent(txt):"");return"https://"+u.replace(/^\/+/,"")}
+  function fill(t,nama){var tg=new Date().toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"});return String(t).replace(/\{nama\}/gi,nama||"").replace(/\{tanggal\}/gi,tg).trim()}
+  function cc(){$("abcc").textContent=M.value.length+" karakter"}
+  function prog(){$("abprog").textContent=idx+"/"+J.length;$("abgo").querySelector("span").textContent=!J.length?"MULAI":(idx>=J.length?"ULANG":(idx>0?"LANJUT":"MULAI"));
+    $("abstop").classList.toggle("on",idx>0);
+    $("abinfo").textContent=!J.length?"Belum ada nomor joki. Tambah di panel (kategori Joki Kontak).":(idx>=J.length?"Selesai. Semua joki sudah dihubungi.":"Berikutnya: "+(J[idx].n||"joki")+" · tiap tekan MULAI = buka WhatsApp joki berikutnya")}
+  function send(x,i){window.open(waHref(x.u,fill(M.value.trim()||DEF,x.n)),"_blank","noopener");var row=$("abl").children[i];if(row)row.classList.add("done")}
   var T=null;
   function clock(){$("abclk").textContent=new Date().toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false})}
-  function draw(){var box=$("abl");box.innerHTML="";var A=(window.DATA&&DATA.__about)||[],L=A.filter(function(x){return x.c==="jk"});
+  function draw(){var box=$("abl");box.innerHTML="";var A=(window.DATA&&DATA.__about)||[];J=A.filter(function(x){return x.c==="jk"});idx=0;
     var sal=A.filter(function(x){return x.c==="saluran"})[0];$("absal").href=waHref(sal?sal.u:"https://whatsapp.com/channel/0029Vb7F5hxLSmbWTjcNTp3x");
-    $("abcnt").textContent=L.length+" joki";
-    if(!L.length){var e=document.createElement("div");e.className="abempty";e.textContent="Belum ada kontak joki. Segera hadir.";box.appendChild(e);return}
-    L.forEach(function(x){var a=document.createElement("a");a.className="abj";a.href=waHref(x.u,"Halo kak "+(x.n||"")+", saya mau pakai jasa Joki Kontak ELZ STR.");a.target="_blank";a.rel="noopener";
-      a.innerHTML='<span class="abjv"></span><span class="abjx"><b></b><small></small></span>'+SEND;
-      var v=a.firstChild;if(x.img){var g=document.createElement("img");g.src=x.img;g.alt="";v.appendChild(g)}else v.textContent=String(x.n||"?").charAt(0).toUpperCase();
-      a.querySelector("b").textContent=x.n||"";a.querySelector("small").textContent=x.d||"Chat WhatsApp";box.appendChild(a)})}
+    $("abcnt").textContent=J.length+" joki";prog();
+    if(!J.length){var e=document.createElement("div");e.className="abempty";e.textContent="Belum ada kontak joki. Segera hadir.";box.appendChild(e);return}
+    J.forEach(function(x,i){var r=document.createElement("div");r.className="abj";
+      r.innerHTML='<span class="abjv"></span><span class="abjx"><b></b><small></small></span><button class="abm">MULAI</button>';
+      var v=r.firstChild;if(x.img){var g=document.createElement("img");g.src=x.img;g.alt="";v.appendChild(g)}else v.textContent=String(x.n||"?").charAt(0).toUpperCase();
+      r.querySelector("b").textContent=x.n||"";r.querySelector("small").textContent=x.d||"Chat WhatsApp";
+      r.querySelector(".abm").onclick=function(){send(x,i)};
+      box.appendChild(r)})}
   function close(){O.hidden=true;clearInterval(T)}
-  window.openJK=function(){draw();O.hidden=false;O.scrollTop=0;clock();clearInterval(T);T=setInterval(clock,1000)};
+  window.openJK=function(){var d=(window.DATA&&DATA.__jkmsg)||"";if(!M.value||M.getAttribute("data-def")!==d){M.value=d||DEF;M.setAttribute("data-def",d)}cc();draw();O.hidden=false;O.scrollTop=0;clock();clearInterval(T);T=setInterval(clock,1000)};
+  M.oninput=cc;
+  O.querySelectorAll(".abchip[data-ins]").forEach(function(b){b.onclick=function(){var t=b.getAttribute("data-ins"),a=M.selectionStart||M.value.length,z=M.selectionEnd||a;M.value=M.value.slice(0,a)+t+M.value.slice(z);M.focus();M.selectionStart=M.selectionEnd=a+t.length;cc()}});
+  $("abex").onclick=function(){M.value=DEF;cc()};
+  $("abgo").onclick=function(){if(!J.length){prog();return}if(idx>=J.length){idx=0;[].forEach.call($("abl").children,function(r){r.classList.remove("done")})}send(J[idx],idx);idx++;prog()};
+  $("abstop").onclick=function(){idx=0;[].forEach.call($("abl").children,function(r){r.classList.remove("done")});prog()};
   $("abback").onclick=close;
   $("abre").onclick=function(){var b=this;b.lastChild.textContent="Memuat...";fetch("/api/data?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.status===200?r.json():null}).then(function(j){if(j&&j.DATA){DATA=j.DATA;draw()}}).catch(function(){}).then(function(){b.lastChild.textContent="Muat ulang"})};
   $("abord").onclick=function(){close();view("home");$("qProd").click()};

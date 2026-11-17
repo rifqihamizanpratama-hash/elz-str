@@ -214,6 +214,10 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <label for="abt">Deskripsi singkat (tampil di menu Tentang)</label>
       <textarea id="abt" rows="3" placeholder="mis. ELZ STR - tempat jual beli dan jasa terpercaya"></textarea>
       <button class="btn g" id="abts">Terapkan deskripsi</button></div>
+    <div class="panel"><b>Pesan Joki Kontak</b>
+      <div class="msg">Tulisan di kartu halaman Joki Kontak. Saat pembeli tekan MULAI, tulisan ini langsung terkirim ke nomor joki lewat WhatsApp. Pakai {nama} untuk nama joki dan {tanggal} untuk tanggal hari ini.</div>
+      <textarea id="jkm" rows="3" placeholder="mis. Halo kak {nama}, saya mau pakai jasa Joki Kontak ELZ STR."></textarea>
+      <button class="btn g" id="jkmb">Terapkan pesan</button></div>
     <div class="panel"><b>Daftar kontak dan link</b>
       <div class="msg">Kategori biasa tampil di menu Tentang. Kategori "Joki Kontak" tampil di menu Joki Kontak (tombol garis tiga di web), isi nama joki + nomor WA masing-masing. Tanda ↑ menaikkan urutan.</div>
       <div id="abl"></div></div>
@@ -470,7 +474,7 @@ $("kvup").onchange=function(){var f=this.files[0];this.value="";if(f)vidUp(f,$("
 var ABC={sosmed:"Sosial Media",wa:"Admin WhatsApp",grup:"Grup",saluran:"Saluran",jk:"Joki Kontak",lain:"Lainnya"},ABI="",ABE=-1;
 function abReset(){ABE=-1;ABI="";$("abn").value="";$("abd").value="";$("abu").value="";$("abfl").textContent="Foto atau logo (opsional)";$("aba").textContent="Tambah";$("abx").hidden=true}
 function al(){return DATA.__about||(DATA.__about=[])}
-function drawAb(){var b=$("abl");if(!b||!DATA)return;b.innerHTML="";$("abt").value=DATA.__abouttext||"";var L=al();
+function drawAb(){var b=$("abl");if(!b||!DATA)return;b.innerHTML="";$("abt").value=DATA.__abouttext||"";$("jkm").value=DATA.__jkmsg||"";var L=al();
   if(!L.length)b.appendChild(mk("div","Belum ada. Web memakai WA admin dan saluran bawaan sampai kamu menambah.","msg"));
   L.forEach(function(it,i){var r=mk("div",null,"ar");r.appendChild(mk("span",(it.img?"🖼 ":"")+"["+(ABC[it.c]||"Lainnya")+"] "+it.n));
     var bb=mk("div");bb.style.cssText="display:flex;gap:6px";
@@ -478,6 +482,7 @@ function drawAb(){var b=$("abl");if(!b||!DATA)return;b.innerHTML="";$("abt").val
     var ed=mk("button","Ubah");ed.onclick=function(){ABE=i;$("abc").value=it.c||"lain";$("abn").value=it.n||"";$("abd").value=it.d||"";$("abu").value=it.u||"";ABI=it.img||"";$("abfl").textContent=ABI?"Foto ada (ketuk untuk ganti)":"Foto atau logo (opsional)";$("aba").textContent="Simpan perubahan";$("abx").hidden=false;$("abn").scrollIntoView({behavior:"smooth",block:"center"})};
     var x=mk("button","Hapus");x.onclick=function(){L.splice(i,1);abReset();dirty();drawAb()};
     bb.appendChild(up);bb.appendChild(ed);bb.appendChild(x);r.appendChild(bb);b.appendChild(r)})}
+$("jkmb").onclick=function(){var v=$("jkm").value.trim();if(v)DATA.__jkmsg=v;else delete DATA.__jkmsg;dirty();$("smsg").textContent="Pesan Joki Kontak diterapkan. Tekan Simpan semua perubahan."};
 $("abts").onclick=function(){var v=$("abt").value.trim();if(v)DATA.__abouttext=v;else delete DATA.__abouttext;dirty()};
 $("abf").onchange=async function(){var f=this.files[0];if(!f)return;try{ABI=await prep(f,120,true,0.75);$("abfl").textContent="Foto dipilih (ketuk untuk ganti)"}catch(e){$("smsg").textContent="Foto gagal dibaca. Coba foto JPG/PNG lain."}};
 $("aba").onclick=function(){var n=$("abn").value.trim(),u=$("abu").value.trim();if(!n||!u){$("smsg").textContent="Isi nama dan link atau nomor dulu.";return}
