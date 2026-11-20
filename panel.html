@@ -206,6 +206,10 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
     <div class="panel"><b>Diskon aktif</b><div id="dl"></div></div>
   </section>
   <section id="s5" class="hide">
+    <div class="panel"><b>Pengunjung web</b>
+      <div class="msg">Jumlah orang yang membuka web. Satu orang dihitung sekali per 10 menit, jadi refresh berulang tidak menambah angka.</div>
+      <div id="stv"></div>
+      <button class="btn g" id="stre">Muat ulang</button></div>
     <div class="panel"><b>Pendapatan</b><div id="rv"></div></div>
     <div class="panel"><b>Per produk</b><div id="rp"></div></div>
   </section>
@@ -270,6 +274,10 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <div class="msg">Foto bukti transfer gampang dipalsukan. "Otomatis saja" hanya menerima pembayaran yang benar-benar terdeteksi masuk (lewat notifikasi DANA di HP admin), bukti foto tidak diterima.</div>
       <select id="pmd"><option value="both">Otomatis + bukti manual (admin cek mutasi)</option><option value="auto">Otomatis saja (tolak bukti foto)</option></select>
       <div class="msg">Pesanan dari bukti manual diberi catatan "BUKTI MANUAL - CEK MUTASI". Pesanan yang terdeteksi otomatis diberi catatan "LUNAS OTOMATIS".</div></div>
+    <div class="panel"><b>Payment gateway (Duitku)</b>
+      <div class="msg">Kalau Environment Variables Duitku sudah diisi di Vercel, web otomatis memakai QRIS gateway (pembayaran terdeteksi langsung, HP tidak perlu hidup). Kalau belum, web memakai cara notifikasi HP.</div>
+      <button class="btn g" id="gwb">Cek gateway Duitku</button>
+      <div id="gwr"></div></div>
     <div class="panel"><b>Pembayaran otomatis (HP)</b>
       <div class="msg">Alamat untuk MacroDroid: <b id="payurl"></b></div>
       <div class="msg">Header: x-admin-pw = password admin. Body JSON: {"text":"isi notifikasi"}</div>
@@ -330,7 +338,7 @@ $("plg").onclick=async function(){PW=$("pw").value;$("pe").textContent="";
 $("out").onclick=function(){PW="";try{localStorage.removeItem("elz_pw")}catch(e){}$("app").classList.add("hide");$("lg").classList.remove("hide")};
 if(PW)enter();
 
-function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});var sv=(n>=2&&n<=4)||n===6||n===7||n===9||n===10;$("sv").classList.toggle("hide",!sv);if(sv)loadProd();if(n===5)drawR();if(n===8)loadCL()}
+function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});var sv=(n>=2&&n<=4)||n===6||n===7||n===9||n===10;$("sv").classList.toggle("hide",!sv);if(sv)loadProd();if(n===5){drawR();loadStat()}if(n===8)loadCL()}
 [1,2,3,4,5,6,7,8,9,10].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
 [].forEach.call($("fl").children,function(b){b.onclick=function(){FL=b.getAttribute("data-f");[].forEach.call($("fl").children,function(x){x.classList.toggle("on",x===b)});tab(1);drawO()}});
 $("q").oninput=drawO;
@@ -534,6 +542,30 @@ $("lbs").onclick=function(){var d=DATA[$("lbp").value];if(!d)return;var a=$("lbp
   var pk=$("lbk").value,bl=$("lbkl").value;if(pk){d.pl=d.pl||{};if(bl)d.pl[pk]=bl;else delete d.pl[pk];if(!Object.keys(d.pl).length)delete d.pl}
   dirty();$("smsg").textContent="Label diterapkan. Tekan Simpan semua perubahan."};
 $("pmd").onchange=function(){if(this.value==="auto")DATA.__paymode="auto";else delete DATA.__paymode;dirty()};
+$("gwb").onclick=async function(){var o=$("gwr");o.innerHTML="Memeriksa...";
+  try{var r=await api("/api/gw?op=methods&amt=10000"),j=await r.json();o.innerHTML="";
+    if(r.status===501){o.appendChild(mk("div","❌ Gateway belum diatur: isi DUITKU_MERCHANT_CODE dan DUITKU_API_KEY di Vercel.","msg"));return}
+    if(r.status===404){o.appendChild(mk("div","❌ api/gw.js belum terpasang.","msg"));return}
+    if(!r.ok){o.appendChild(mk("div","❌ Gagal (kode "+r.status+"). Cek kode merchant dan API key.","msg"));return}
+    o.appendChild(mk("div","✅ Terhubung ke Duitku ("+j.env+"). Kode QRIS yang dipakai: "+j.method,"msg"));
+    (Array.isArray(j.methods)?j.methods:[]).forEach(function(m){o.appendChild(mk("div",(m.paymentMethod===j.method?"👉 ":"• ")+m.paymentMethod+" — "+(m.paymentName||"")+" (biaya "+(m.totalFee||"?")+")","msg"))})}
+  catch(e){o.innerHTML="";o.appendChild(mk("div","❌ Gagal terhubung.","msg"))}};
+async function loadStat(){var o=$("stv");o.innerHTML="Memuat...";
+  try{var r=await api("/api/stat"),j=await r.json();
+    if(r.status===404){o.textContent="api/stat.js belum terpasang di folder api.";return}
+    if(!r.ok){o.textContent="Gagal memuat (kode "+r.status+").";return}
+    o.innerHTML="";var g=mk("div");g.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0";
+    [[j.online,"ONLINE SEKARANG"],[j.today.uniq,"ORANG HARI INI"],[j.week.uniq,"ORANG 7 HARI"],[j.total.uniq,"ORANG TOTAL"]].forEach(function(x){var c=mk("div",null,"stc"),b=mk("b",String(x[0])),sp=mk("span",x[1]);c.appendChild(b);c.appendChild(sp);g.appendChild(c)});
+    o.appendChild(g);o.appendChild(mk("div","Kunjungan: hari ini "+j.today.views+" · 7 hari "+j.week.views+" · total "+j.total.views,"msg"));
+    var mx=Math.max.apply(null,[1].concat(j.days.map(function(d){return d.views})));
+    j.days.forEach(function(d){var row=mk("div");row.style.cssText="display:flex;align-items:center;gap:10px;margin:8px 0;font-size:14px";
+      var dt=mk("span",d.d.slice(8)+"/"+d.d.slice(5,7));dt.style.cssText="width:46px;color:var(--mut)";
+      var bar=mk("div");bar.style.cssText="flex:1;height:14px;border-radius:7px;background:#14141a;overflow:hidden";
+      var fill=mk("div");fill.style.cssText="height:100%;border-radius:7px;background:linear-gradient(90deg,#38b6ff,#8fdcff);width:"+Math.round(d.views/mx*100)+"%";bar.appendChild(fill);
+      var n=mk("span",d.views+" ("+d.uniq+")");n.style.cssText="min-width:64px;text-align:right";row.appendChild(dt);row.appendChild(bar);row.appendChild(n);o.appendChild(row)});
+    o.appendChild(mk("div","Angka di kanan: kunjungan (orang unik).","msg"))}
+  catch(e){o.textContent="Gagal terhubung."}}
+$("stre").onclick=loadStat;
 function gl(){return DATA.__groups||(DATA.__groups=[])}
 function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");var lb=mk("span",null);lb.style.cssText="display:flex;align-items:center;gap:8px;min-width:0";
   if(G.img){var im=mk("img");im.src=G.img;im.style.cssText="width:38px;height:38px;border-radius:10px;object-fit:cover;flex:none";lb.appendChild(im)}else lb.appendChild(mk("span",G.ic||"📁"));
@@ -606,6 +638,8 @@ $("chk").onclick=async function(){var o=$("chkr");o.innerHTML="Memeriksa...";var
   var a=await st("/api/pay?id=x");row(a===400,"api/pay.js terpasang"+(a===400?"":" (kode "+a+")"));
   a=await st("/api/chat?cid=x");row(a===400,"api/chat.js terpasang"+(a===400?"":" (kode "+a+")"));
   a=await st("/api/img?id=");row(a===400,"api/img.js terpasang"+(a===400?"":" (kode "+a+")"));
+  var sts=await st("/api/stat");row(sts===401,"api/stat.js terpasang (laporan pengunjung)"+(sts===401?"":" (kode "+sts+")"));
+  var gwst=await st("/api/gw?op=x");row(gwst===501||gwst===400,"api/gw.js terpasang"+(gwst===501?" (gateway belum diisi kuncinya)":gwst===400?" (gateway aktif)":" (kode "+gwst+")"));
   a=await st("/api/video?id=x");row(a===400,"api/video.js terpasang (untuk upload video)"+(a===400?"":" (kode "+a+")"));
   try{var r=await fetch("/api/orders?view=queue",{cache:"no-store"}),j=await r.json(),ok=r.ok&&Array.isArray(j.queue);row(ok,"antrian pesanan terbaca (untuk notifikasi pesanan baru)"+(ok?"":" (kode "+r.status+")"))}catch(e){row(false,"antrian pesanan gagal dibaca")}
   try{var r2=await fetch("/api/data?v="+Date.now(),{cache:"no-store"}),j2=r2.status===200?await r2.json():null,m=j2&&j2.DATA&&j2.DATA.__maint;row(r2.status===200||r2.status===204,"data toko terbaca dari server");row(true,"Maintenance di server: "+(m&&m.on?"NYALA":"MATI"))}catch(e){row(false,"data toko gagal dibaca")}

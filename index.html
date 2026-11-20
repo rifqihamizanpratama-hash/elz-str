@@ -1754,6 +1754,12 @@ function payUI(){var need=order.total>0,auto=autoMode(),has=!!$("pf").files[0],p
   if(!need)$("qrNote").textContent="Total Rp 0, tidak perlu bayar. Langsung konfirmasi pesanan.";
   else if(paid)$("qrNote").textContent="✅ Pembayaran "+rp(order.pay.amount)+" sudah diterima. Silakan konfirmasi pesanan."}
 function reserveAmt(){if(!(order.total>0))return;
+  fetch("/api/gw?op=create",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({base:order.total})}).then(function(r){return r.ok?r.json():null}).then(function(j){
+    if(j&&j.rid&&j.qr){var cv=qrCanvas(j.qr);if(cv){order.pay={rid:j.rid,amount:j.amount,k:0};var box=$("qrBox");box.innerHTML="";
+      var im=document.createElement("img");im.src=cv.toDataURL("image/png");im.alt="QRIS pembayaran "+rp(j.amount);im.style.imageRendering="pixelated";box.appendChild(im);
+      $("qrNote").textContent="Scan QRIS di atas. Bayar tepat "+rp(j.amount)+". Pembayaran terdeteksi otomatis, berlaku 1 jam.";return}}
+    reserveLocal()}).catch(reserveLocal)}
+function reserveLocal(){if(!(order.total>0))return;
   fetch("/api/pay?op=reserve",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({base:order.total})}).then(function(r){return r.ok?r.json():null}).then(function(j){
     if(!j||!j.rid){if(autoMode())$("qrNote").textContent="Pembayaran otomatis sedang tidak tersedia. Silakan hubungi CS.";return}order.pay={rid:j.rid,amount:j.amount,k:j.k};qrDraw(j.amount);
     $("qrNote").textContent="Scan QRIS di atas. Bayar tepat "+rp(j.amount)+(j.k?" (sudah termasuk kode unik Rp "+j.k+")":"")+". Pembayaran terdeteksi otomatis, berlaku 30 menit."}).catch(function(){if(autoMode()&&!order.pay)$("qrNote").textContent="Pembayaran otomatis sedang tidak tersedia. Silakan hubungi CS."})}
@@ -1896,4 +1902,12 @@ $("pf").addEventListener("change",payUI);
   $("abord").onclick=function(){close();view("home");$("qProd").click()};
   $("abcs").onclick=function(){openCS()};
 })();
+
+/* ===== Hitung pengunjung ===== */
+(function(){try{
+  var id=localStorage.getItem("elz_vid");if(!id){var a=new Uint8Array(10);(window.crypto||window.msCrypto).getRandomValues(a);id=Array.prototype.map.call(a,function(b){return("0"+b.toString(16)).slice(-2)}).join("")+Date.now().toString(36);localStorage.setItem("elz_vid",id)}
+  var first=!sessionStorage.getItem("elz_vs");sessionStorage.setItem("elz_vs","1");
+  function ping(n){fetch("/api/stat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({v:id,n:n}),keepalive:true}).catch(function(){})}
+  ping(first?1:0);setInterval(function(){if(!document.hidden)ping(0)},60000);
+}catch(e){}})();
 </script></body></html>
