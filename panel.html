@@ -95,7 +95,7 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
     <button class="stc" data-f="menunggu"><b class="y" id="sB">0</b><span>BELUM</span></button>
     <button class="stc" data-f="selesai"><b class="g" id="sS">0</b><span>SELESAI</span></button>
   </div>
-  <div class="tabs"><button id="t1" class="on">Pesanan</button><button id="t2">Produk &amp; akun</button><button id="t3">Kelompok</button><button id="t4">Diskon</button><button id="t5">Pendapatan</button><button id="t6">Tentang</button><button id="t7">Info &amp; Pesan</button><button id="t8">CS</button><button id="t9">Tampilan</button><button id="t10">Label</button></div>
+  <div class="tabs"><button id="t1" class="on">Pesanan</button><button id="t2">Produk &amp; akun</button><button id="t3">Kelompok</button><button id="t4">Diskon</button><button id="t5">Pendapatan</button><button id="t6">Tentang</button><button id="t7">Info &amp; Pesan</button><button id="t8">CS</button><button id="t9">Tampilan</button><button id="t10">Label</button><button id="t11">Tools</button></div>
 
     <section id="s10" class="hide">
     <div class="panel"><b>Daftar label</b>
@@ -113,6 +113,21 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <label for="lbkl">Label paket / nominal</label><select id="lbkl"></select>
       <button class="btn" id="lbs">Terapkan label</button>
       <div class="msg">Pilih "(tanpa label)" untuk menghapus. Setelah itu tekan Simpan semua perubahan.</div></div>
+  </section>
+    <section id="s11" class="hide">
+    <div class="panel"><b>Buat kode akses Tools</b>
+      <div class="msg">Pembeli perlu kode ini untuk membuka menu Tools di web. Satu kode yang dimasukkan membuka Tools selama 12 jam di HP itu.</div>
+      <input type="text" id="tkl" placeholder="Catatan (mis. nama pembeli, opsional)" maxlength="40">
+      <label for="tkn">Jumlah kode</label><input type="number" id="tkn" value="1" min="1" max="50" inputmode="numeric">
+      <label for="tkd">Berlaku berapa hari (0 = tanpa batas)</label><input type="number" id="tkd" value="30" min="0" inputmode="numeric">
+      <label for="tkm">Boleh dimasukkan berapa kali (0 = tanpa batas)</label><input type="number" id="tkm" value="0" min="0" inputmode="numeric">
+      <button class="btn" id="tkc">Buat kode</button>
+      <textarea id="tkr" rows="3" readonly hidden></textarea>
+      <button class="btn g" id="tkcp" hidden>Salin semua kode baru</button>
+      <div class="msg" id="tkmsg"></div></div>
+    <div class="panel"><b>Daftar kode</b>
+      <div id="tkv"></div>
+      <button class="btn g" id="tkre">Muat ulang</button></div>
   </section>
   <div id="mtbar" hidden>🛠 MAINTENANCE AKTIF — web tertutup untuk pengunjung</div>
   <section id="s1">
@@ -338,8 +353,8 @@ $("plg").onclick=async function(){PW=$("pw").value;$("pe").textContent="";
 $("out").onclick=function(){PW="";try{localStorage.removeItem("elz_pw")}catch(e){}$("app").classList.add("hide");$("lg").classList.remove("hide")};
 if(PW)enter();
 
-function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});var sv=(n>=2&&n<=4)||n===6||n===7||n===9||n===10;$("sv").classList.toggle("hide",!sv);if(sv)loadProd();if(n===5){drawR();loadStat()}if(n===8)loadCL()}
-[1,2,3,4,5,6,7,8,9,10].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
+function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});var sv=(n>=2&&n<=4)||n===6||n===7||n===9||n===10;$("sv").classList.toggle("hide",!sv);if(sv)loadProd();if(n===5){drawR();loadStat()}if(n===8)loadCL();if(n===11)loadCodes()}
+[1,2,3,4,5,6,7,8,9,10,11].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
 [].forEach.call($("fl").children,function(b){b.onclick=function(){FL=b.getAttribute("data-f");[].forEach.call($("fl").children,function(x){x.classList.toggle("on",x===b)});tab(1);drawO()}});
 $("q").oninput=drawO;
 async function load(){try{var r=await api("/api/orders");if(r.ok){ORD=(await r.json()).orders||[];drawO()}}catch(e){}}
@@ -566,6 +581,26 @@ async function loadStat(){var o=$("stv");o.innerHTML="Memuat...";
     o.appendChild(mk("div","Angka di kanan: kunjungan (orang unik).","msg"))}
   catch(e){o.textContent="Gagal terhubung."}}
 $("stre").onclick=loadStat;
+function copyTxt(t){try{navigator.clipboard.writeText(t)}catch(e){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(x){}a.remove()}}
+async function loadCodes(){var o=$("tkv");o.innerHTML="Memuat...";
+  try{var r=await api("/api/code?op=list"),j=await r.json();
+    if(r.status===404){o.textContent="api/code.js belum terpasang di folder api.";return}
+    if(!r.ok){o.textContent="Gagal memuat (kode "+r.status+").";return}
+    o.innerHTML="";if(!j.codes.length)o.appendChild(mk("div","Belum ada kode.","msg"));
+    j.codes.forEach(function(c){var row=mk("div",null,"ar");
+      var sp=mk("span",c.code+(c.label?" • "+c.label:"")+" — "+c.status+" ("+c.used+"/"+(c.max||"∞")+")"+(c.exp?" • sampai "+new Date(c.exp).toLocaleDateString("id-ID"):" • tanpa batas waktu"));
+      var bb=mk("div");bb.style.cssText="display:flex;gap:6px";
+      var cp=mk("button","Salin");cp.onclick=function(){copyTxt(c.code);cp.textContent="✓";setTimeout(function(){cp.textContent="Salin"},1200)};
+      var dl=mk("button","Hapus");dl.onclick=async function(){if(!confirm("Hapus kode "+c.code+"?"))return;await api("/api/code",{method:"DELETE",body:JSON.stringify({code:c.code})});loadCodes()};
+      bb.appendChild(cp);bb.appendChild(dl);row.appendChild(sp);row.appendChild(bb);o.appendChild(row)})}
+  catch(e){o.textContent="Gagal terhubung."}}
+$("tkre").onclick=loadCodes;
+$("tkc").onclick=async function(){var b=this;b.disabled=true;$("tkmsg").textContent="Membuat...";
+  try{var r=await api("/api/code",{method:"POST",body:JSON.stringify({op:"create",label:$("tkl").value.trim(),n:+$("tkn").value||1,days:+$("tkd").value||0,max:+$("tkm").value||0})}),j=await r.json();
+    if(!r.ok||!j.codes){$("tkmsg").textContent=r.status===404?"api/code.js belum terpasang.":"Gagal membuat kode (kode "+r.status+").";return}
+    $("tkr").hidden=false;$("tkr").value=j.codes.join("\n");$("tkcp").hidden=false;$("tkmsg").textContent=j.codes.length+" kode dibuat. Salin dan kirim ke pembeli.";loadCodes()}
+  catch(e){$("tkmsg").textContent="Gagal terhubung."}finally{b.disabled=false}};
+$("tkcp").onclick=function(){copyTxt($("tkr").value);this.textContent="Tersalin ✓";var b=this;setTimeout(function(){b.textContent="Salin semua kode baru"},1400)};
 function gl(){return DATA.__groups||(DATA.__groups=[])}
 function drawG(){var b=$("gl");b.innerHTML="";gl().forEach(function(G,i){var n=PK().filter(function(k){return DATA[k].g===G.n}).length,r=mk("div",null,"ar");var lb=mk("span",null);lb.style.cssText="display:flex;align-items:center;gap:8px;min-width:0";
   if(G.img){var im=mk("img");im.src=G.img;im.style.cssText="width:38px;height:38px;border-radius:10px;object-fit:cover;flex:none";lb.appendChild(im)}else lb.appendChild(mk("span",G.ic||"📁"));
@@ -638,6 +673,7 @@ $("chk").onclick=async function(){var o=$("chkr");o.innerHTML="Memeriksa...";var
   var a=await st("/api/pay?id=x");row(a===400,"api/pay.js terpasang"+(a===400?"":" (kode "+a+")"));
   a=await st("/api/chat?cid=x");row(a===400,"api/chat.js terpasang"+(a===400?"":" (kode "+a+")"));
   a=await st("/api/img?id=");row(a===400,"api/img.js terpasang"+(a===400?"":" (kode "+a+")"));
+  var cds=await st("/api/code?op=js&t=x");row(cds===401,"api/code.js terpasang (kode akses Tools)"+(cds===401?"":" (kode "+cds+")"));
   var sts=await st("/api/stat");row(sts===401,"api/stat.js terpasang (laporan pengunjung)"+(sts===401?"":" (kode "+sts+")"));
   var gwst=await st("/api/gw?op=x");row(gwst===501||gwst===400,"api/gw.js terpasang"+(gwst===501?" (gateway belum diisi kuncinya)":gwst===400?" (gateway aktif)":" (kode "+gwst+")"));
   a=await st("/api/video?id=x");row(a===400,"api/video.js terpasang (untuk upload video)"+(a===400?"":" (kode "+a+")"));

@@ -399,6 +399,21 @@ nav a,nav button{white-space:nowrap;font-size:13px}
 #abx .abprog b{font-size:18px}
 #abx .abg{padding:16px;gap:12px}
 #abx .abk{min-width:0;padding:15px 4px;font-size:15px}
+
+/* ===== TOOLS (gaya ungu) ===== */
+#tlx{position:fixed;inset:0;z-index:15;background:linear-gradient(180deg,#0f0720,#160a30 45%,#0b0518);color:#f3e8ff;overflow-y:auto}
+#tlx[hidden]{display:none}
+#tlx .tlgate{max-width:440px;margin:0 auto;padding:calc(90px + env(safe-area-inset-top,0px)) 22px 40px;position:relative}
+#tlx .nxb2{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));left:18px;width:44px;height:44px;border-radius:50%;border:1px solid #a78bfa55;background:#ffffff14;color:#fff;font-size:22px;cursor:pointer}
+#tlx .tlgt{font-family:"Space Mono",ui-monospace,monospace;font-weight:700;font-size:28px;letter-spacing:2px;color:#e9d5ff}
+#tlx .tlgs{margin-top:6px;font-family:"Space Mono",ui-monospace,monospace;font-size:12px;letter-spacing:6px;color:#a78bfa}
+#tlx .tlgc{margin-top:26px;padding:22px;border-radius:26px;border:1px solid #a78bfa2e;background:#ffffff0a}
+#tlx .tlgh{font-weight:700;font-size:22px}
+#tlx .tlgc p{color:#9a8ab8;line-height:1.5;margin:8px 0 14px}
+#tlx .tlgc input{width:100%;padding:14px;border-radius:14px;border:1.5px solid #a78bfa44;background:#0f0720;color:#f3e8ff;font:inherit;font-size:20px;letter-spacing:3px;text-transform:uppercase;text-align:center}
+#tlx .tlge{min-height:22px;margin-top:10px;color:#f87171;font-size:14px}
+#tlx .tlgc button{width:100%;margin-top:6px;padding:15px;border:0;border-radius:16px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-family:inherit;font-weight:700;font-size:17px;cursor:pointer}
+#tlx .tlgc button:disabled{opacity:.6}
 </style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Archivo+Black&amp;family=Space+Mono:wght@400;700&amp;display=swap">
@@ -1833,6 +1848,7 @@ $("pf").addEventListener("change",payUI);
   var P=D.querySelector(".drp");
   [["Beranda",SV('<path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/>'),function(){view("home")}],
    ["Joki Kontak",SV('<path d="M4 20l1.4-4.2A8 8 0 1 1 8.4 18.8z"/>'),function(){openJK()}],
+   ["Tools",SV('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>'),function(){openTools()}],
    ["Top Up Game",SV('<rect x="3" y="6" width="18" height="12" rx="4"/><path d="M7 10v4M5 12h4"/><circle cx="15.5" cy="11" r=".7"/><circle cx="17.5" cy="13" r=".7"/>'),function(){$("qT").click()}],
    ["Akun FF",SV('<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M8.5 12l2.5 2.5L15.5 10"/>'),function(){$("qFF").click()}],
    ["Tentang",SV('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/>'),function(){openAbout()}],
@@ -1910,4 +1926,23 @@ $("pf").addEventListener("change",payUI);
   function ping(n){fetch("/api/stat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({v:id,n:n}),keepalive:true}).catch(function(){})}
   ping(first?1:0);setInterval(function(){if(!document.hidden)ping(0)},60000);
 }catch(e){}})();
+
+/* ===== Tools (wajib kode) ===== */
+(function(){
+  var KEY="elz_tt",O=document.createElement("div");O.id="tlx";O.hidden=true;O.innerHTML='<div id="tlc"></div>';document.body.appendChild(O);
+  function tok(){try{var o=JSON.parse(localStorage.getItem(KEY)||"null");if(o&&o.exp>Date.now())return o.t}catch(e){}return""}
+  function close(){O.hidden=true}
+  function gate(msg){var c=$("tlc");c.innerHTML='<div class="tlgate"><button class="nxb2" id="tlgb" aria-label="Kembali">‹</button><div class="tlgt">⚡ All Tools ELZ</div><div class="tlgs">b y  e l z  s t r</div>'+
+    '<div class="tlgc"><div class="tlgh">Masukkan kode</div><p>Tools hanya untuk yang punya kode akses. Minta kode ke admin.</p><input type="text" id="tlcode" placeholder="XXXX-XXXX" autocomplete="off" autocapitalize="characters"><div class="tlge" id="tle"></div><button id="tlgo">Buka Tools</button></div></div>';
+    if(msg)$("tle").textContent=msg;$("tlgb").onclick=close;
+    function go(){var v=$("tlcode").value.trim();if(!v){$("tle").textContent="Isi kodenya dulu.";return}var b=$("tlgo");b.disabled=true;b.textContent="Memeriksa...";
+      fetch("/api/code",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({op:"check",code:v})}).then(function(r){return r.json().catch(function(){return{}})}).then(function(j){
+        if(j&&j.ok&&j.token){try{localStorage.setItem(KEY,JSON.stringify({t:j.token,exp:Date.now()+(j.ttl||43200)*1000-60000}))}catch(e){}load();return}
+        $("tle").textContent=(j&&j.error)||"Kode tidak bisa dipakai.";b.disabled=false;b.textContent="Buka Tools"}).catch(function(){$("tle").textContent="Gagal terhubung. Coba lagi.";b.disabled=false;b.textContent="Buka Tools"})}
+    $("tlgo").onclick=go;$("tlcode").onkeydown=function(e){if(e.key==="Enter")go()}}
+  function load(){var t=tok();if(!t){gate();return}$("tlc").innerHTML='<div class="tlgate"><div class="tlgs">memuat tools...</div></div>';
+    fetch("/api/code?op=js&t="+encodeURIComponent(t),{cache:"no-store"}).then(function(r){if(r.status===401){try{localStorage.removeItem(KEY)}catch(e){}gate("Sesi habis atau kode sudah tidak berlaku. Masukkan kode lagi.");return null}if(!r.ok)throw 0;return r.text()}).then(function(js){
+      if(!js)return;var s=document.createElement("script");s.textContent=js;document.head.appendChild(s);s.remove();window.ELZTOOLS($("tlc"),close)}).catch(function(){$("tlc").innerHTML='<div class="tlgate"><div class="tlgs">gagal memuat tools. coba lagi.</div></div>'})}
+  window.openTools=function(){O.hidden=false;O.scrollTop=0;load()};
+})();
 </script></body></html>
