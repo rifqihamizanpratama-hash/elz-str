@@ -414,6 +414,22 @@ nav a,nav button{white-space:nowrap;font-size:13px}
 #tlx .tlge{min-height:22px;margin-top:10px;color:#f87171;font-size:14px}
 #tlx .tlgc button{width:100%;margin-top:6px;padding:15px;border:0;border-radius:16px;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-family:inherit;font-weight:700;font-size:17px;cursor:pointer}
 #tlx .tlgc button:disabled{opacity:.6}
+
+#tlx .tlor{text-align:center;color:#9a8ab8;margin:14px 0 8px;font-size:14px}
+#tlx .tlgc button.alt{background:#7c3aed22;border:1px solid #a78bfa55;color:#ede9fe}
+
+/* ===== CEK PESANAN ===== */
+#ckw input{display:block;width:100%}
+.ckc{margin-top:18px;padding:20px;border-radius:24px;border:1.5px solid var(--line);background:#0a0a0d}
+.ckb{display:inline-block;padding:9px 16px;border-radius:999px;background:#14284a;border:1px solid #2a4a80;color:#e6f1ff;font-weight:700;font-size:14px;letter-spacing:.5px}
+.ckb.ok{background:#12376b;color:#7cc4ff}
+.ckid{margin:16px 0 4px;font-weight:700;font-size:26px;word-break:break-all}
+.ckp{font-weight:700;font-size:34px;color:var(--acc);margin:6px 0 14px}
+.ckr{margin-top:12px;padding:16px 18px;border-radius:20px;background:#101016;border:1px solid var(--line)}
+.ckr small{display:block;color:var(--mut);font-weight:700;letter-spacing:1px;font-size:13px}
+.ckr b{display:block;margin-top:6px;font-size:19px}
+.ckc .pill{margin-top:16px}
+.ckm{margin-top:14px;color:var(--mut);line-height:1.5}
 </style>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Archivo+Black&amp;family=Space+Mono:wght@400;700&amp;display=swap">
@@ -491,7 +507,9 @@ nav a,nav button{white-space:nowrap;font-size:13px}
     </div>
   </section>
   <section id="s4" class="hide">
-    <div class="cat">Antrian Pesanan</div>
+    <div class="tnc" id="ckw" style="margin-top:0"><div class="stp">Cek Pesanan</div><div class="sum">Masukkan nomor pesananmu untuk melihat status dan antrian.</div>
+      <input type="text" id="cekid" placeholder="ORD-XXXXXXXXXXXX" autocomplete="off" style="margin-top:10px"><button class="pill" id="cekgo" style="margin-top:12px">Cek Pesanan</button><div id="cekres"></div></div>
+    <div class="cat" style="margin-top:24px">Antrian Pesanan</div>
     <div class="sum" id="qInfo">Memuat antrian...</div>
         <div id="qList"></div>
   </section>
@@ -1927,22 +1945,71 @@ $("pf").addEventListener("change",payUI);
   ping(first?1:0);setInterval(function(){if(!document.hidden)ping(0)},60000);
 }catch(e){}})();
 
-/* ===== Tools (wajib kode) ===== */
+/* ===== Tools (wajib kode, atau akses gratis 1 hari dengan ACC admin) ===== */
 (function(){
-  var KEY="elz_tt",O=document.createElement("div");O.id="tlx";O.hidden=true;O.innerHTML='<div id="tlc"></div>';document.body.appendChild(O);
+  var KEY="elz_tt",RK="elz_tr",O=document.createElement("div"),PT=null;O.id="tlx";O.hidden=true;O.innerHTML='<div id="tlc"></div>';document.body.appendChild(O);
   function tok(){try{var o=JSON.parse(localStorage.getItem(KEY)||"null");if(o&&o.exp>Date.now())return o.t}catch(e){}return""}
-  function close(){O.hidden=true}
-  function gate(msg){var c=$("tlc");c.innerHTML='<div class="tlgate"><button class="nxb2" id="tlgb" aria-label="Kembali">‹</button><div class="tlgt">⚡ All Tools ELZ</div><div class="tlgs">b y  e l z  s t r</div>'+
-    '<div class="tlgc"><div class="tlgh">Masukkan kode</div><p>Tools hanya untuk yang punya kode akses. Minta kode ke admin.</p><input type="text" id="tlcode" placeholder="XXXX-XXXX" autocomplete="off" autocapitalize="characters"><div class="tlge" id="tle"></div><button id="tlgo">Buka Tools</button></div></div>';
-    if(msg)$("tle").textContent=msg;$("tlgb").onclick=close;
+  function setTok(t,ttl){try{localStorage.setItem(KEY,JSON.stringify({t:t,exp:Date.now()+(ttl||43200)*1000-60000}))}catch(e){}}
+  function stopPoll(){clearInterval(PT);PT=null}
+  function close(){O.hidden=true;stopPoll()}
+  function head(back){return'<div class="tlgate"><button class="nxb2" id="tlgb" aria-label="Kembali">‹</button><div class="tlgt">⚡ All Tools ELZ</div><div class="tlgs">b y  e l z  s t r</div>'}
+  function mainGate(msg){stopPoll();var c=$("tlc");c.innerHTML=head()+'<div class="tlgc"><div class="tlgh">Masukkan kode</div><p>Tools hanya untuk yang punya kode akses. Minta kode ke admin.</p><input type="text" id="tlcode" placeholder="XXXX-XXXX" autocomplete="off" autocapitalize="characters"><div class="tlge" id="tle"></div><button id="tlgo">Buka Tools</button>'+
+    '<div class="tlor">atau</div><button class="alt" id="tlfree">Minta akses gratis 1 hari</button></div></div>';
+    if(msg)$("tle").textContent=msg;$("tlgb").onclick=close;$("tlfree").onclick=function(){reqForm()};
     function go(){var v=$("tlcode").value.trim();if(!v){$("tle").textContent="Isi kodenya dulu.";return}var b=$("tlgo");b.disabled=true;b.textContent="Memeriksa...";
       fetch("/api/code",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({op:"check",code:v})}).then(function(r){return r.json().catch(function(){return{}})}).then(function(j){
-        if(j&&j.ok&&j.token){try{localStorage.setItem(KEY,JSON.stringify({t:j.token,exp:Date.now()+(j.ttl||43200)*1000-60000}))}catch(e){}load();return}
+        if(j&&j.ok&&j.token){setTok(j.token,j.ttl);load();return}
         $("tle").textContent=(j&&j.error)||"Kode tidak bisa dipakai.";b.disabled=false;b.textContent="Buka Tools"}).catch(function(){$("tle").textContent="Gagal terhubung. Coba lagi.";b.disabled=false;b.textContent="Buka Tools"})}
     $("tlgo").onclick=go;$("tlcode").onkeydown=function(e){if(e.key==="Enter")go()}}
-  function load(){var t=tok();if(!t){gate();return}$("tlc").innerHTML='<div class="tlgate"><div class="tlgs">memuat tools...</div></div>';
-    fetch("/api/code?op=js&t="+encodeURIComponent(t),{cache:"no-store"}).then(function(r){if(r.status===401){try{localStorage.removeItem(KEY)}catch(e){}gate("Sesi habis atau kode sudah tidak berlaku. Masukkan kode lagi.");return null}if(!r.ok)throw 0;return r.text()}).then(function(js){
+  function reqForm(msg){stopPoll();var c=$("tlc");c.innerHTML=head()+'<div class="tlgc"><div class="tlgh">Akses gratis 1 hari</div><p>Isi data di bawah. Admin akan mengecek dan menyetujui (ACC). Setelah disetujui, Tools terbuka otomatis selama 1 hari.</p>'+
+    '<input type="text" id="tlnm" placeholder="Nama kamu" maxlength="40" style="text-transform:none;letter-spacing:0;font-size:17px;margin-bottom:10px"><input type="tel" id="tlwa" placeholder="Nomor WhatsApp (08xxxxxxxxxx)" maxlength="20" inputmode="tel" style="text-transform:none;letter-spacing:0;font-size:17px"><div class="tlge" id="tle"></div><button id="tlsend">Kirim permintaan</button><button class="alt" id="tlbk" style="margin-top:10px">Punya kode? Masukkan kode</button></div></div>';
+    if(msg)$("tle").textContent=msg;$("tlgb").onclick=close;$("tlbk").onclick=function(){mainGate()};
+    $("tlsend").onclick=function(){var n=$("tlnm").value.trim(),w=$("tlwa").value.trim();if(!n||w.replace(/\D/g,"").length<9){$("tle").textContent="Isi nama dan nomor WhatsApp yang benar.";return}var b=this;b.disabled=true;b.textContent="Mengirim...";
+      fetch("/api/code",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({op:"req",name:n,wa:w})}).then(function(r){return r.json().catch(function(){return{}})}).then(function(j){
+        if(j&&j.ok&&j.rid){try{localStorage.setItem(RK,j.rid)}catch(e){}waiting();return}
+        $("tle").textContent=(j&&j.error)||"Permintaan gagal dikirim.";b.disabled=false;b.textContent="Kirim permintaan"}).catch(function(){$("tle").textContent="Gagal terhubung. Coba lagi.";b.disabled=false;b.textContent="Kirim permintaan"})}}
+  function waiting(){var c=$("tlc");c.innerHTML=head()+'<div class="tlgc"><div class="tlgh">Menunggu ACC admin</div><p>Permintaan akses gratis sudah terkirim. Jangan tutup halaman ini, Tools akan terbuka otomatis begitu admin menyetujui.</p><div class="tlge" id="tle" style="color:#c4b5fd">⏳ Menunggu persetujuan...</div><button class="alt" id="tlcn">Batalkan permintaan</button></div></div>';
+    $("tlgb").onclick=close;$("tlcn").onclick=function(){try{localStorage.removeItem(RK)}catch(e){}mainGate()};stopPoll();PT=setInterval(pollReq,5000);pollReq()}
+  function pollReq(){var rid="";try{rid=localStorage.getItem(RK)||""}catch(e){}if(!rid){stopPoll();return}
+    fetch("/api/code?op=reqst&r="+encodeURIComponent(rid),{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
+      if(j.status==="approved"&&j.token){stopPoll();setTok(j.token,j.ttl);load()}
+      else if(j.status==="rejected"){try{localStorage.removeItem(RK)}catch(e){}reqForm("Permintaan ditolak admin. Kamu bisa minta kode langsung ke admin.")}
+      else if(j.status==="expired"||j.status==="none"){try{localStorage.removeItem(RK)}catch(e){}mainGate("Akses gratis sudah habis atau permintaan kedaluwarsa. Minta kode ke admin.")}}).catch(function(){})}
+  function load(){var t=tok();if(!t){var rk="";try{rk=localStorage.getItem(RK)||""}catch(e){}if(rk){waiting();return}mainGate();return}stopPoll();$("tlc").innerHTML='<div class="tlgate"><div class="tlgs">memuat tools...</div></div>';
+    fetch("/api/code?op=js&t="+encodeURIComponent(t),{cache:"no-store"}).then(function(r){if(r.status===401){try{localStorage.removeItem(KEY)}catch(e){}var rk="";try{rk=localStorage.getItem(RK)||""}catch(e){}if(rk){waiting()}else mainGate("Sesi habis atau kode sudah tidak berlaku. Masukkan kode lagi.");return null}if(!r.ok)throw 0;return r.text()}).then(function(js){
       if(!js)return;var s=document.createElement("script");s.textContent=js;document.head.appendChild(s);s.remove();window.ELZTOOLS($("tlc"),close)}).catch(function(){$("tlc").innerHTML='<div class="tlgate"><div class="tlgs">gagal memuat tools. coba lagi.</div></div>'})}
   window.openTools=function(){O.hidden=false;O.scrollTop=0;load()};
+})();
+
+/* ===== Cek Pesanan ===== */
+(function(){
+  var LAST="";
+  function norm(v){return String(v||"").toLowerCase().replace(/^\s*ord-?/,"").replace(/[^a-z0-9]/g,"")}
+  var PAY={lunas:"Pembayaran Berhasil",cek:"Bukti diterima, menunggu dicek admin",gratis:"Gratis, tidak perlu bayar",belum:"Menunggu verifikasi admin"};
+  function row(l,v){var d=document.createElement("div");d.className="ckr";d.innerHTML="<small></small><b></b>";d.firstChild.textContent=l;d.lastChild.textContent=v;return d}
+  function tm(ts){if(!ts)return"-";return new Date(ts).toLocaleString("id-ID",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}).replace(":",".")}
+  function render(o){var box=$("cekres");box.innerHTML="";var c=document.createElement("div");c.className="ckc";
+    var done=o.status==="selesai",bad=document.createElement("span");bad.className="ckb"+(done?" ok":"");bad.textContent=done?"PESANAN SELESAI":"MENUNGGU DIPROSES";
+    var id=document.createElement("div");id.className="ckid";id.textContent="ORD-"+o.code;c.appendChild(bad);c.appendChild(id);
+    if(o.total!=null){var pr=document.createElement("div");pr.className="ckp";pr.textContent=rp(o.total);c.appendChild(pr)}
+    c.appendChild(row("STATUS",done?"Selesai":"Menunggu"));
+    if(o.pay)c.appendChild(row("PEMBAYARAN",PAY[o.pay]||"-"));
+    var aq=done?"Sudah selesai":(o.ahead>0?"Ada "+o.ahead+" pesanan di depanmu":"Giliranmu berikutnya");c.appendChild(row("ANTRIAN",aq));
+    c.appendChild(row("PAKET/LAYANAN",(o.prod||"-")+(o.pkg?" • "+o.pkg:"")+(o.q>1?" x"+o.q:"")));
+    c.appendChild(row("DIPESAN",tm(o.ts)));if(done&&o.doneAt)c.appendChild(row("SELESAI",tm(o.doneAt)));
+    var rf=document.createElement("button");rf.className="pill ghost";rf.textContent="Muat Ulang Status";rf.onclick=function(){cek(true)};c.appendChild(rf);box.appendChild(c)}
+  function msg(t){var b=$("cekres");b.innerHTML="";var d=document.createElement("div");d.className="ckm";d.textContent=t;b.appendChild(d)}
+  function fromQueue(id){return fetch("/api/orders?view=queue",{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).then(function(j){var q=(j&&j.queue)||[],m=q.filter(function(x){return String(x.id||"").toLowerCase()===id})[0];
+    if(!m)return null;var ahead=m.status==="selesai"?0:q.filter(function(x){return x.status!=="selesai"&&x.ts<m.ts}).length;return{code:String(m.id).toUpperCase(),status:m.status,prod:m.prod,pkg:m.pkg,q:m.q,ts:m.ts,ahead:ahead}})}
+  function cek(silent){var id=norm($("cekid").value);if(id.length<8){msg("Isi nomor pesananmu dulu (contoh ORD-ABC123...).");return}LAST=id;try{localStorage.setItem("elz_lastord",id)}catch(e){}
+    if(!silent)msg("Memeriksa...");
+    fetch("/api/orders?code="+encodeURIComponent(id),{cache:"no-store"}).then(function(r){return r.ok?r.json():null}).catch(function(){return null}).then(function(j){
+      if(j&&j.found){render(j.order);return}
+      if(j&&j.found===false){return fromQueue(id).then(function(o){if(o)render(o);else msg("Pesanan tidak ditemukan. Cek lagi nomornya.")})}
+      return fromQueue(id).then(function(o){if(o)render(o);else msg("Pesanan tidak ditemukan atau belum bisa dicek.")})}).catch(function(){msg("Gagal terhubung. Coba lagi.")})}
+  $("cekgo").onclick=function(){cek(false)};$("cekid").onkeydown=function(e){if(e.key==="Enter")cek(false)};
+  try{var p=localStorage.getItem("elz_lastord");if(p)$("cekid").value="ORD-"+p.toUpperCase()}catch(e){}
+  $("toq").addEventListener("click",function(){var t=$("code").textContent;if(t){$("cekid").value=t.indexOf("ORD")===0?t:"ORD-"+t;setTimeout(function(){cek(false)},50)}});
+  setInterval(function(){if(LAST&&!$("s4").classList.contains("hide")&&$("cekres").firstChild&&$("cekres").querySelector(".ckc"))cek(true)},20000);
 })();
 </script></body></html>

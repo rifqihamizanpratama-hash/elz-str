@@ -115,6 +115,10 @@ input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-vis
       <div class="msg">Pilih "(tanpa label)" untuk menghapus. Setelah itu tekan Simpan semua perubahan.</div></div>
   </section>
     <section id="s11" class="hide">
+    <div class="panel"><b>Permintaan akses gratis</b>
+      <div class="msg">Pengunjung yang minta akses gratis muncul di sini. Tekan ACC supaya Tools terbuka otomatis di HP mereka.</div>
+      <label for="tkqd">Lama akses gratis (hari)</label><input type="number" id="tkqd" value="1" min="1" max="30" inputmode="numeric">
+      <div id="tkq"></div><button class="btn g" id="tkqr">Muat ulang permintaan</button></div>
     <div class="panel"><b>Buat kode akses Tools</b>
       <div class="msg">Pembeli perlu kode ini untuk membuka menu Tools di web. Satu kode yang dimasukkan membuka Tools selama 12 jam di HP itu.</div>
       <input type="text" id="tkl" placeholder="Catatan (mis. nama pembeli, opsional)" maxlength="40">
@@ -353,7 +357,7 @@ $("plg").onclick=async function(){PW=$("pw").value;$("pe").textContent="";
 $("out").onclick=function(){PW="";try{localStorage.removeItem("elz_pw")}catch(e){}$("app").classList.add("hide");$("lg").classList.remove("hide")};
 if(PW)enter();
 
-function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});var sv=(n>=2&&n<=4)||n===6||n===7||n===9||n===10;$("sv").classList.toggle("hide",!sv);if(sv)loadProd();if(n===5){drawR();loadStat()}if(n===8)loadCL();if(n===11)loadCodes()}
+function tab(n){["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11"].forEach(function(s,i){$(s).classList.toggle("hide",i+1!==n);$("t"+(i+1)).classList.toggle("on",i+1===n)});var sv=(n>=2&&n<=4)||n===6||n===7||n===9||n===10;$("sv").classList.toggle("hide",!sv);if(sv)loadProd();if(n===5){drawR();loadStat()}if(n===8)loadCL();if(n===11){loadCodes();loadReqs()}}
 [1,2,3,4,5,6,7,8,9,10,11].forEach(function(n){$("t"+n).onclick=function(){tab(n)}});
 [].forEach.call($("fl").children,function(b){b.onclick=function(){FL=b.getAttribute("data-f");[].forEach.call($("fl").children,function(x){x.classList.toggle("on",x===b)});tab(1);drawO()}});
 $("q").oninput=drawO;
@@ -581,6 +585,17 @@ async function loadStat(){var o=$("stv");o.innerHTML="Memuat...";
     o.appendChild(mk("div","Angka di kanan: kunjungan (orang unik).","msg"))}
   catch(e){o.textContent="Gagal terhubung."}}
 $("stre").onclick=loadStat;
+async function loadReqs(){var o=$("tkq");o.innerHTML="Memuat...";
+  try{var r=await api("/api/code?op=reqs"),j=await r.json();if(!r.ok){o.textContent=r.status===404?"api/code.js belum terpasang.":"Gagal memuat (kode "+r.status+").";return}
+    o.innerHTML="";if(!j.reqs.length)o.appendChild(mk("div","Belum ada permintaan.","msg"));
+    j.reqs.forEach(function(q){var row=mk("div",null,"ar"),ago=Math.max(0,Math.round((Date.now()-q.ts)/60000)),t=ago<60?ago+" menit lalu":ago<1440?Math.round(ago/60)+" jam lalu":Math.round(ago/1440)+" hari lalu";
+      var st=q.status==="pending"?"menunggu":q.status==="approved"?"disetujui":"ditolak";
+      var sp=mk("span",q.name+" • "+q.wa+" • "+t+" — "+st);var bb=mk("div");bb.style.cssText="display:flex;gap:6px;flex-wrap:wrap";
+      if(q.status==="pending"){var ok=mk("button","ACC");ok.onclick=async function(){ok.disabled=true;var d=await api("/api/code",{method:"POST",body:JSON.stringify({op:"reqacc",rid:q.rid,days:+$("tkqd").value||1})}),jj=await d.json();flash(d.ok?"✅ Disetujui. Kode "+jj.code:"Gagal: "+(jj.error||d.status),!d.ok);loadReqs();loadCodes()};
+        var no=mk("button","Tolak");no.onclick=async function(){await api("/api/code",{method:"POST",body:JSON.stringify({op:"reqno",rid:q.rid})});loadReqs()};bb.appendChild(ok);bb.appendChild(no)}
+      var dl=mk("button","Hapus");dl.onclick=async function(){await api("/api/code",{method:"POST",body:JSON.stringify({op:"reqdel",rid:q.rid})});loadReqs()};bb.appendChild(dl);row.appendChild(sp);row.appendChild(bb);o.appendChild(row)})}
+  catch(e){o.textContent="Gagal terhubung."}}
+$("tkqr").onclick=loadReqs;var LREQ=-1;
 function copyTxt(t){try{navigator.clipboard.writeText(t)}catch(e){var a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(x){}a.remove()}}
 async function loadCodes(){var o=$("tkv");o.innerHTML="Memuat...";
   try{var r=await api("/api/code?op=list"),j=await r.json();
@@ -664,7 +679,7 @@ function ordPoll(){if($("app").classList.contains("hide"))return;
 setInterval(ordPoll,5000);setTimeout(ordPoll,1500);
 function unlockAudio(){try{ACX=ACX||new (window.AudioContext||window.webkitAudioContext)();if(ACX.state==="suspended")ACX.resume()}catch(e){}}
 document.addEventListener("pointerdown",unlockAudio);
-function mtPoll(){if($("app").classList.contains("hide"))return;fetch("/api/data?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.status===200?r.json():null}).then(function(j){var m=j&&j.DATA&&j.DATA.__maint;$("mtbar").hidden=!(m&&m.on)}).catch(function(){})}
+function mtPoll(){if($("app").classList.contains("hide"))return;api("/api/code?op=reqcount").then(function(r){return r.ok?r.json():null}).then(function(j){if(!j)return;if(LREQ>=0&&j.pending>LREQ){beep();flash("🔔 Ada permintaan akses gratis Tools ("+j.pending+")",false)}LREQ=j.pending}).catch(function(){});fetch("/api/data?v="+Date.now(),{cache:"no-store"}).then(function(r){return r.status===200?r.json():null}).then(function(j){var m=j&&j.DATA&&j.DATA.__maint;$("mtbar").hidden=!(m&&m.on)}).catch(function(){})}
 setInterval(mtPoll,30000);setTimeout(mtPoll,1500);
 $("beept").onclick=function(){unlockAudio();beep();flash("🔔 Tes bunyi notifikasi",false)};
 $("chk").onclick=async function(){var o=$("chkr");o.innerHTML="Memeriksa...";var rows=[];function row(ok,t){rows.push([ok,t])}
