@@ -22,6 +22,12 @@ const ALPH = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const norm = (c) => String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 const pretty = (n) => n.slice(0, 4) + "-" + n.slice(4);
 const SESSION = 43200; // sesi tools 12 jam setelah kode dimasukkan
+const normWa = (w) => {
+  let d = String(w || "").replace(/\D/g, "");
+  if (d.startsWith("0")) d = "62" + d.slice(1);
+  else if (d.startsWith("8")) d = "62" + d;
+  return /^62\d{8,13}$/.test(d) ? d : "";
+};
 function genCode() {
   const b = crypto.randomBytes(8);
   let s = "";
@@ -75,8 +81,99 @@ module.exports = async (req, res) => {
       return res.status(200).json({ ok: true, token, ttl: SESSION });
     }
 
+    // ---- pembeli: minta akses gratis (perlu ACC admin) ----
+    if (req.method === "POST" && body(req).op === "req") {
+      const b = body(req);
+      const ip = String(req.headers["x-forwarded-for"] || "x").split(",")[0].trim().slice(0, 45).replace(/[^\w.:]/g, "");
+      const rl = await r(["INCR", "elzrq:" + ip]);
+      if (rl === 1) await r(["EXPIRE", "elzrq:" + ip, 3600]);
+      if (rl > 5) return res.status(429).json({ ok: false, error: "Terlalu banyak permintaan. Coba lagi nanti." });
+      const name = String(b.name || "").trim().slice(0, 40);
+      const wa = normWa(b.wa);
+      if (!name || !wa) return res.status(400).json({ ok: false, error: "Isi nama dan nomor WhatsApp yang benar." });
+      if (await r(["GET", "elzfree:" + wa]))
+        return res.status(403).json({ ok: false, error: "Nomor ini sudah pernah memakai akses gratis. Hubungi admin untuk kode." });
+      const old = await r(["GET", "elzreqwa:" + wa]);
+      if (old) {
+        const oraw = await r(["GET", "elzreq:" + old]);
+        if (oraw && JSON.parse(oraw).status === "pending")
+          return res.status(409).json({ ok: false, error: "Permintaan untuk nomor ini masih menunggu ACC admin." });
+      }
+      const rid = crypto.randomBytes(10).toString("hex");
+      await r(["SET", "elzreq:" + rid, JSON.stringify({ rid, name, wa, ts: now, status: "pending" }), "EX", 604800]);
+      await r(["SET", "elzreqwa:" + wa, rid, "EX", 604800]);
+      await r(["LPUSH", "elzreqs", rid]);
+      await r(["LTRIM", "elzreqs", 0, 199]);
+      await r(["INCR", "elzreqn"]);
+      return res.status(200).json({ ok: true, rid });
+    }
+    if (req.method === "GET" && q.op === "reqst") {
+      const rid = String(q.r || "");
+      if (!/^[a-f0-9]{20}$/.test(rid)) return res.status(400).json({ status: "none" });
+      const raw = await r(["GET", "elzreq:" + rid]);
+      if (!raw) return res.status(200).json({ status: "none" });
+      const rec = JSON.parse(raw);
+      if (rec.status === "approved") {
+        const craw = await r(["GET", "elzc:" + rec.code]);
+        const c = craw ? JSON.parse(craw) : null;
+        if (!c || (c.exp && now > c.exp)) return res.status(200).json({ status: "expired" });
+        const ttl = Math.max(60, Math.min(SESSION, Math.floor((c.exp - now) / 1000)));
+        const token = crypto.randomBytes(12).toString("hex");
+        await r(["SET", "elztok:" + token, rec.code, "EX", ttl]);
+        return res.status(200).json({ status: "approved", token, ttl, until: c.exp });
+      }
+      return res.status(200).json({ status: rec.status });
+    }
+
     // ---- sisanya khusus admin ----
     if (!isAdmin(req)) return res.status(401).json({ error: "password salah" });
+
+    // permintaan akses gratis
+    if (req.method === "GET" && q.op === "reqcount") {
+      return res.status(200).json({ pending: +(await r(["GET", "elzreqn"])) || 0 });
+    }
+    if (req.method === "GET" && q.op === "reqs") {
+      const ids = (await r(["LRANGE", "elzreqs", 0, 99])) || [];
+      const vals = ids.length ? await r(["MGET", ...ids.map((i) => "elzreq:" + i)]) : [];
+      const list = vals.filter(Boolean).map((v) => JSON.parse(v));
+      const pending = list.filter((x) => x.status === "pending").length;
+      await r(["SET", "elzreqn", String(pending)]);
+      return res.status(200).json({ reqs: list, pending });
+    }
+    if (req.method === "POST" && ["reqacc", "reqno", "reqdel"].includes(body(req).op)) {
+      const b = body(req);
+      const rid = String(b.rid || "");
+      if (!/^[a-f0-9]{20}$/.test(rid)) return res.status(400).json({ error: "id tidak valid" });
+      const raw = await r(["GET", "elzreq:" + rid]);
+      const rec = raw ? JSON.parse(raw) : null;
+      if (b.op === "reqdel") {
+        await r(["DEL", "elzreq:" + rid]);
+        await r(["LREM", "elzreqs", 0, rid]);
+        if (rec && rec.status === "pending") await r(["DECR", "elzreqn"]);
+        return res.status(200).json({ ok: true });
+      }
+      if (!rec || rec.status !== "pending") return res.status(409).json({ error: "permintaan sudah diproses atau tidak ada" });
+      if (b.op === "reqno") {
+        rec.status = "rejected";
+        await r(["SET", "elzreq:" + rid, JSON.stringify(rec), "EX", 604800]);
+        await r(["DECR", "elzreqn"]);
+        return res.status(200).json({ ok: true });
+      }
+      const days = Math.max(1, Math.min(30, Math.floor(+b.days) || 1));
+      let code = genCode();
+      while (await r(["GET", "elzc:" + code])) code = genCode();
+      const crec = { code: pretty(code), label: "Gratis: " + rec.name, created: now, exp: now + days * 86400000, max: 0, used: 0, free: true, wa: rec.wa };
+      await r(["SET", "elzc:" + code, JSON.stringify(crec)]);
+      await r(["LPUSH", "elzcodes", code]);
+      await r(["LTRIM", "elzcodes", 0, 999]);
+      rec.status = "approved";
+      rec.code = code;
+      rec.accAt = now;
+      await r(["SET", "elzreq:" + rid, JSON.stringify(rec), "EX", 604800]);
+      await r(["SET", "elzfree:" + rec.wa, "1", "EX", 2592000]);
+      await r(["DECR", "elzreqn"]);
+      return res.status(200).json({ ok: true, code: crec.code, exp: crec.exp });
+    }
 
     if (req.method === "GET" && q.op === "list") {
       const ids = (await r(["LRANGE", "elzcodes", 0, 299])) || [];
